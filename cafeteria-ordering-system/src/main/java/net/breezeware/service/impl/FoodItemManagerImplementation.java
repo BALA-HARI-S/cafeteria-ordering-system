@@ -18,20 +18,16 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     public boolean createFoodItem(String name, int quantity, double price) {
         foodItemStore.openConnection();
         FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(name);
-        if(alreadyExistFoodItem != null){
+        if(!Objects.isNull(alreadyExistFoodItem)){
             System.out.println("Food Item Already Exist");
             displayFoodItem(name);
             foodItemStore.closeConnection();
             return false;
         }
-        System.out.println("creating new food item");
         FoodItem newFoodItem = new FoodItem(name,quantity,price, Instant.now(), Instant.now());
-        newFoodItem.toString();
+
         LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
         LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
-        createdDateTime.format(formatter);
-        modifiedDateTime.format(formatter);
 
         boolean result =  foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
                 newFoodItem.getPrice(), createdDateTime, modifiedDateTime);

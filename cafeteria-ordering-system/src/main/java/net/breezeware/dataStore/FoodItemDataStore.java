@@ -27,11 +27,11 @@ public class FoodItemDataStore {
             "(" + COLUMN_FOOD_NAME + "," + COLUMN_FOOD_QUANTITY + "," + COLUMN_FOOD_PRICE + "," +
             COLUMN_FOOD_CREATED + "," + COLUMN_FOOD_MODIFIED + ") VALUES(?, ?, ?, ?, ?)";
     public static final String QUERY_FOOD_ITEM = "SELECT * FROM " + TABLE_FOOD_ITEMS + " WHERE name = ?";
-    public static final String UPDATE_FOOD_ITEM_NAME = "UPDATE " + TABLE_FOOD_ITEMS + " SET name = '?' WHERE name = '?'" ;
-    public static final String UPDATE_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_FOOD_ITEMS + " SET quantity = ? WHERE name = '?'" ;
-    public static final String UPDATE_FOOD_ITEM_PRICE = "UPDATE " + TABLE_FOOD_ITEMS + " SET price = ? WHERE name = '?'" ;
-    public static final String UPDATE_FOOD_ITEM_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_ITEMS + " SET modified = '?' WHERE name = '?'" ;
-    public static final String DELETE_FOOD_ITEM = "DELETE FROM " + TABLE_FOOD_ITEMS + " WHERE name = '?'";
+    public static final String UPDATE_FOOD_ITEM_NAME = "UPDATE " + TABLE_FOOD_ITEMS + " SET name = ? WHERE name = ?" ;
+    public static final String UPDATE_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_FOOD_ITEMS + " SET quantity = ? WHERE name = ?" ;
+    public static final String UPDATE_FOOD_ITEM_PRICE = "UPDATE " + TABLE_FOOD_ITEMS + " SET price = ? WHERE name = ?" ;
+    public static final String UPDATE_FOOD_ITEM_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_ITEMS + " SET modified = ? WHERE name = ?" ;
+    public static final String DELETE_FOOD_ITEM = "DELETE FROM " + TABLE_FOOD_ITEMS + " WHERE name = ?";
     public static final int ORDER_BY_ASC = 2;
     private Connection connection;
 

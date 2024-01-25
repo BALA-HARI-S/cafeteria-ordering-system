@@ -3,6 +3,10 @@ package net.breezeware;
 import net.breezeware.service.api.FoodItemManager;
 import net.breezeware.service.impl.FoodItemManagerImplementation;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class Main {
@@ -30,6 +34,7 @@ public class Main {
                     String foodItemName = scanner.nextLine();
                     System.out.print("Food Item Quantity: ");
                     int foodItemQuantity = scanner.nextInt();
+                    scanner.nextLine();
                     System.out.print("Food Item Price(₹): ");
                     double foodItemPrice = scanner.nextDouble();
                     boolean isFoodItemCreated = foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
