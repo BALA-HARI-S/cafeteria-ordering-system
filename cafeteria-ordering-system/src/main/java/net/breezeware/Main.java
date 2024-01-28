@@ -1,5 +1,6 @@
 package net.breezeware;
 
+import net.breezeware.entity.FoodItem;
 import net.breezeware.service.api.FoodItemManager;
 import net.breezeware.service.impl.FoodItemManagerImplementation;
 
@@ -28,7 +29,7 @@ public class Main {
                     isApplicationRunning = false;
                 }
                 case 1 -> {
-                    System.out.println("Cafeteria Admin Operation : Creating Food Item");
+                    System.out.println("Cafeteria Admin Operation: Creating Food Item");
                     scanner.nextLine();
                     System.out.print("Food Item Name: ");
                     String foodItemName = scanner.nextLine();
@@ -37,20 +38,19 @@ public class Main {
                     scanner.nextLine();
                     System.out.print("Food Item Price(₹): ");
                     double foodItemPrice = scanner.nextDouble();
-                    boolean isFoodItemCreated = foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
-                    System.out.println(isFoodItemCreated? "Food Item Created Successfully" : "Couldn't Create Food Item");
+                    foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
                 }
                 case 2 -> {
-                    System.out.println("Cafeteria Admin Operation : Display Food Item");
+                    System.out.println("Cafeteria Admin Operation: Display Food Item");
                     scanner.nextLine();
                     System.out.print("Food Item Name: ");
                     String foodItemName = scanner.nextLine();
                     foodItemManager.displayFoodItem(foodItemName);
                 }
                 case 3 -> {
-                    System.out.println("Cafeteria Admin Operation : Display All Food Items");
+                    System.out.println("Cafeteria Admin Operation: Display All Food Items");
                     scanner.nextLine();
-                    System.out.print("Do you want arrange Food Items in an order?(Yes/No): ");
+                    System.out.print("Do you want arrange food-items in an order?(Yes/No): ");
                     String orderBy = scanner.nextLine();
                     boolean isOrderBy = false;
                     boolean isAscending = false;
@@ -75,13 +75,58 @@ public class Main {
                             case 5 -> columnName = "created";
                             case 6 -> columnName = "modified";
                         }
-                        System.out.print("1) Ascending Order \n2) Descending Order \nOption : ");
+                        System.out.print("""
+                                1) Ascending Order
+                                2) Descending Order
+                                Option :""");
                         int orderType = scanner.nextInt();
                         if(orderType == 1){
                             isAscending = true;
                         }
                     }
                     foodItemManager.displayAllFoodItems(isOrderBy, isAscending? 1: 2, columnName);
+                }
+                case 4 -> {
+                    System.out.println("Cafeteria Admin Operation: Edit Food Item");
+                    System.out.print("""
+                            1) Edit Food Item Name
+                            2) Edit Food Item Quantity
+                            3) Edit Food Item Price
+                            Option :""");
+                    int editOption = scanner.nextInt();
+                    switch (editOption){
+                        case 1 -> {
+                            System.out.println("Cafeteria Admin Operation: Edit Food Item Name");
+                            scanner.nextLine();
+                            System.out.print("Which food-item name do you want to change: ");
+                            String foodItem = scanner.nextLine();
+                            System.out.print("Enter a New name for the food-item: ");
+                            String newName = scanner.nextLine();
+                            FoodItem updatedFoodItem = foodItemManager.editFoodItemName(newName, foodItem);
+                            foodItemManager.displayFoodItem(updatedFoodItem.getName());
+                        }
+                        case 2 -> {
+                            System.out.println("Cafeteria Admin Operation: Edit Food Item Quantity");
+                            scanner.nextLine();
+                            System.out.println("Which food-item quantity do you want to change: ");
+                            String foodItem = scanner.nextLine();
+                            System.out.println("Enter a New quantity for the food-item: ");
+                            int newQuantity = scanner.nextInt();
+                            FoodItem updatedFoodItem = foodItemManager.editFoodItemQuantity(newQuantity, foodItem);
+                            foodItemManager.displayFoodItem(updatedFoodItem.getName());
+                        }
+                        case 3 -> {
+                            System.out.println("Cafeteria Admin Operation: Edit Food Item Price");
+                            scanner.nextLine();
+                            System.out.println("Which food-item price do you want to change: ");
+                            String foodItem = scanner.nextLine();
+                            System.out.println("Enter a New price for the food-item: ");
+                            double newPrice = scanner.nextDouble();
+                            FoodItem updatedFoodItem = foodItemManager.editFoodItemPrice(newPrice, foodItem);
+                            foodItemManager.displayFoodItem(updatedFoodItem.getName());
+                        }
+
+                    }
                 }
 
             }
@@ -93,7 +138,7 @@ public class Main {
                 1) Create Food Item
                 2) Display Food Item
                 3) Display All Food Items
-                4) Update Food Item
+                4) Edit Food Item
                 5) Remove Food Item
                 Press 0 to exit() Application.
                 """;

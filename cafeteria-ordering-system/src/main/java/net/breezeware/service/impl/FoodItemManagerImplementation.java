@@ -4,6 +4,7 @@ import net.breezeware.dataStore.FoodItemDataStore;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.service.api.FoodItemManager;
 
+import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -15,32 +16,40 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     private final FoodItemDataStore foodItemStore = new FoodItemDataStore();
 
     @Override
-    public boolean createFoodItem(String name, int quantity, double price) {
+    public void createFoodItem(String name, int quantity, double price) {
+        String foodItemName = capitalizeFirstLetter(name);
         foodItemStore.openConnection();
-        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(name);
+        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(foodItemName);
         if(!Objects.isNull(alreadyExistFoodItem)){
             System.out.println("Food Item Already Exist");
-            displayFoodItem(name);
+            displayFoodItem(foodItemName);
             foodItemStore.closeConnection();
-            return false;
+        } else {
+            Instant now = Instant.now();
+            FoodItem newFoodItem = new FoodItem(foodItemName,quantity,price, now, now);
+            LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
+            LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
+            boolean result = foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
+                    newFoodItem.getPrice(), createdDateTime, modifiedDateTime);
+            if(result){
+                displayFoodItem(foodItemName);
+            }
+            foodItemStore.closeConnection();
         }
-        FoodItem newFoodItem = new FoodItem(name,quantity,price, Instant.now(), Instant.now());
-
-        LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
-        LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
-
-        boolean result =  foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
-                newFoodItem.getPrice(), createdDateTime, modifiedDateTime);
-        foodItemStore.closeConnection();
-        return result;
     }
 
     @Override
     public void displayFoodItem(String foodItemName) {
         foodItemStore.openConnection();
-        FoodItem foodItem = foodItemStore.queryFoodItem(foodItemName);
-        System.out.println(foodItem.toString());
-        foodItemStore.closeConnection();
+        FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
+        if(!Objects.isNull(foodItem)){
+            System.out.println(foodItem.toString());
+            foodItemStore.closeConnection();
+        } else {
+            System.out.println("Food Item not Available!");
+            foodItemStore.closeConnection();
+        }
+
     }
 
     @Override
@@ -52,65 +61,71 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     }
 
     @Override
-    public boolean editFoodItemName(String newName, String foodItem) {
+    public FoodItem editFoodItemName(String newName, String foodItemName) {
         foodItemStore.openConnection();
-        FoodItem updatedFoodItem = foodItemStore.updateFoodItemName(newName, foodItem);
-        if(Objects.isNull(updatedFoodItem)){
+        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
+        if(Objects.isNull(alreadyExistFoodItem)){
+            System.out.println("Food Item not available");
+        } else {
+            FoodItem updatedFoodItem = foodItemStore
+                    .updateFoodItemName(capitalizeFirstLetter(newName), capitalizeFirstLetter(foodItemName));
+            if(!Objects.isNull(updatedFoodItem)){
+                foodItemStore.closeConnection();
+                return updatedFoodItem;
+            }
             foodItemStore.closeConnection();
-           return false;
         }
-        displayFoodItem(updatedFoodItem.getName());
-        foodItemStore.closeConnection();
-        return true;
+        return null;
     }
 
     @Override
-    public boolean editFoodItemQuantity(int quantity, String foodItem) {
+    public FoodItem editFoodItemQuantity(int quantity, String foodItem) {
         foodItemStore.openConnection();
-        FoodItem updatedFoodItem = foodItemStore.updateFoodItemQuantity(quantity, foodItem);
-        if(Objects.isNull(updatedFoodItem)){
+        FoodItem updatedFoodItem = foodItemStore
+                .updateFoodItemQuantity(quantity, capitalizeFirstLetter(foodItem));
+        if(!Objects.isNull(updatedFoodItem)){
             foodItemStore.closeConnection();
-            return false;
+            return updatedFoodItem;
         }
-        displayFoodItem(updatedFoodItem.getName());
         foodItemStore.closeConnection();
-        return true;
+        return null;
     }
 
     @Override
-    public boolean editFoodItemPrice(double price, String foodItem) {
+    public FoodItem editFoodItemPrice(double price, String foodItem) {
         foodItemStore.openConnection();
-        FoodItem updatedFoodItem = foodItemStore.updateFoodItemPrice(price, foodItem);
-        if(Objects.isNull(updatedFoodItem)){
+        FoodItem updatedFoodItem = foodItemStore
+                .updateFoodItemPrice(price, capitalizeFirstLetter(foodItem));
+        if(!Objects.isNull(updatedFoodItem)){
             foodItemStore.closeConnection();
-            return false;
+            return updatedFoodItem;
         }
-        displayFoodItem(updatedFoodItem.getName());
         foodItemStore.closeConnection();
-        return true;
+        return null;
     }
 
     @Override
-    public boolean removeFoodItem(String foodItem) {
+    public boolean removeFoodItem(String foodItemName) {
         foodItemStore.openConnection();
-        boolean result = foodItemStore.removeFoodItem(foodItem);
+        boolean result = foodItemStore.removeFoodItem(capitalizeFirstLetter(foodItemName));
         foodItemStore.closeConnection();
         return result;
     }
 
-//    private Instant createdDateAndTime() {
-//            //Get current date and time
-//            LocalDateTime localDateTime = LocalDateTime.now();
-//
-//            //Format date and time
-//            DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
-//            localDateTime.format(dateTimePattern);
-//
-//            // Convert LocalDateTime to Instant
-//            return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
-//    }
-
-
+    private static String capitalizeFirstLetter(String input) {
+        StringBuilder result = new StringBuilder();
+        String[] words = input.split("\\s");
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1)).append(" ");
+            }
+        }
+        if (!result.isEmpty()) {
+            result.setLength(result.length() - 1);
+        }
+        return result.toString();
+    }
 
 
 }

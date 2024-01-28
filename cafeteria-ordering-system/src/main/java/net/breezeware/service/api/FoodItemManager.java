@@ -15,12 +15,12 @@ public interface FoodItemManager {
      * @param quantity - Food Quantity
      * @param price - Food price
      */
-    boolean createFoodItem(String name, int quantity, double price);
+    void createFoodItem(String name, int quantity, double price);
     void displayFoodItem(String foodItemName);
     void displayAllFoodItems(boolean isOrderBy, int sortOrder, String columnName);
-    boolean editFoodItemName(String newName, String foodItem);
-    boolean editFoodItemQuantity(int quantity, String foodItem);
-    boolean editFoodItemPrice(double price, String foodItem);
-    boolean removeFoodItem(String foodItem);
+    FoodItem editFoodItemName(String newName, String foodItem);
+    FoodItem editFoodItemQuantity(int quantity, String foodItem);
+    FoodItem editFoodItemPrice(double price, String foodItem);
+    boolean removeFoodItem(String foodItemName);
 
 }

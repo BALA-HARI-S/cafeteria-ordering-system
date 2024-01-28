@@ -14,7 +14,6 @@ public class FoodItem {
     private Instant modified;
 
     public FoodItem(){}
-
     public FoodItem(String name, int quantity, double price, Instant created, Instant modified){
         this.name = name;
         this.quantity = quantity;
@@ -71,22 +70,21 @@ public class FoodItem {
         this.modified = modified;
     }
 
-//    private String formatCreatedInstant(){
-//        LocalDateTime localDateTime = LocalDateTime.ofInstant(this.created,ZoneId.systemDefault());
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
-//        return  localDateTime.format(formatter);
-//    }
-//
-//    private String formatModifiedInstant(){
-//        LocalDateTime localDateTime = LocalDateTime.ofInstant(this.modified,ZoneId.systemDefault());
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
-//        return  localDateTime.format(formatter);
-//    }
+    private String formatCreatedInstant(){
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(this.created,ZoneId.systemDefault());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
+        return  localDateTime.format(formatter);
+    }
+
+    private String formatModifiedInstant(){
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(this.modified,ZoneId.systemDefault());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
+        return  localDateTime.format(formatter);
+    }
 
     @Override
     public String toString() {
         return "FoodItem %d - %s%n Created : %s%n Last modified : %s%n Quantity : %d%n Price : %.2f%n"
-                .formatted(id, name, created, modified, quantity, price);
-
+                .formatted(id, name, formatCreatedInstant(), formatModifiedInstant(), quantity, price);
     }
 }

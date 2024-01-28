@@ -4,7 +4,6 @@ import net.breezeware.entity.FoodItem;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +15,7 @@ public class FoodItemDataStore {
     public static final String DB_USER = "cos_usr";
     public static final String DB_PASSWORD= "P@ssw0rd";
     public static final String TABLE_FOOD_ITEMS = "food_items";
-    public static final String COLUMN_FOOD_ID = "food_id";
+    public static final String COLUMN_FOOD_ID = "_id";
     public static final String COLUMN_FOOD_NAME = "name";
     public static final String COLUMN_FOOD_QUANTITY = "quantity";
     public static final String COLUMN_FOOD_PRICE = "price";
@@ -26,12 +25,12 @@ public class FoodItemDataStore {
     public static final String INSERT_FOOD_ITEM = "INSERT INTO " + TABLE_FOOD_ITEMS +
             "(" + COLUMN_FOOD_NAME + "," + COLUMN_FOOD_QUANTITY + "," + COLUMN_FOOD_PRICE + "," +
             COLUMN_FOOD_CREATED + "," + COLUMN_FOOD_MODIFIED + ") VALUES(?, ?, ?, ?, ?)";
-    public static final String QUERY_FOOD_ITEM = "SELECT * FROM " + TABLE_FOOD_ITEMS + " WHERE name = ?";
-    public static final String UPDATE_FOOD_ITEM_NAME = "UPDATE " + TABLE_FOOD_ITEMS + " SET name = ? WHERE name = ?" ;
-    public static final String UPDATE_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_FOOD_ITEMS + " SET quantity = ? WHERE name = ?" ;
-    public static final String UPDATE_FOOD_ITEM_PRICE = "UPDATE " + TABLE_FOOD_ITEMS + " SET price = ? WHERE name = ?" ;
-    public static final String UPDATE_FOOD_ITEM_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_ITEMS + " SET modified = ? WHERE name = ?" ;
-    public static final String DELETE_FOOD_ITEM = "DELETE FROM " + TABLE_FOOD_ITEMS + " WHERE name = ?";
+    public static final String QUERY_FOOD_ITEM = "SELECT * FROM " + TABLE_FOOD_ITEMS + " WHERE " + COLUMN_FOOD_NAME + " = ?";
+    public static final String UPDATE_FOOD_ITEM_NAME = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_NAME + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    public static final String UPDATE_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_QUANTITY + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    public static final String UPDATE_FOOD_ITEM_PRICE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_PRICE + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    public static final String UPDATE_FOOD_ITEM_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_MODIFIED + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    public static final String DELETE_FOOD_ITEM = "DELETE FROM " + TABLE_FOOD_ITEMS + " WHERE " + COLUMN_FOOD_NAME + " = ?";
     public static final int ORDER_BY_ASC = 2;
     private Connection connection;
 
@@ -57,44 +56,39 @@ public class FoodItemDataStore {
 
     public boolean insertFoodItem(String name, int quantity, double price,
                                   LocalDateTime created, LocalDateTime modified){
-        try {
-            PreparedStatement insertFoodItem = connection.prepareStatement(INSERT_FOOD_ITEM,
-                    Statement.RETURN_GENERATED_KEYS);
-            insertFoodItem.setString(1, capitalizeFirstLetter(name));
+        try (PreparedStatement insertFoodItem = connection.prepareStatement(INSERT_FOOD_ITEM,
+                Statement.RETURN_GENERATED_KEYS)) {
+            insertFoodItem.setString(1, name);
             insertFoodItem.setInt(2, quantity);
             insertFoodItem.setDouble(3, price);
             insertFoodItem.setTimestamp(4, Timestamp.valueOf(created));
             insertFoodItem.setTimestamp(5, Timestamp.valueOf(modified));
             int rowsAffected = insertFoodItem.executeUpdate();
-            if (rowsAffected> 0){
-                insertFoodItem.close();
-                return true;
-            }
-            insertFoodItem.close();
-            return false;
+            return rowsAffected > 0;
         } catch (SQLException e) {
-            System.out.println("Couldn't insert food item : " + e.getMessage());
+            System.out.println("Couldn't Create Food Item : " + e.getMessage());
             return false;
         }
     }
 
     public FoodItem queryFoodItem(String name){
-        try {
-            PreparedStatement queryFoodItem = connection.prepareStatement(QUERY_FOOD_ITEM);
+        try (PreparedStatement queryFoodItem = connection.prepareStatement(QUERY_FOOD_ITEM)){
             queryFoodItem.setString(1,name);
             ResultSet result = queryFoodItem.executeQuery();
-            FoodItem foodItem = new FoodItem();
-            while(result.next()){
-                foodItem.setId(result.getInt("_id"));
-                foodItem.setName(result.getString("name"));
-                foodItem.setQuantity(result.getInt("quantity"));
-                foodItem.setPrice(result.getDouble("price"));
-                foodItem.setCreated(result.getTimestamp("created").toInstant());
-                foodItem.setModified(result.getTimestamp("modified").toInstant());
+            if(result.next()){
+                FoodItem foodItem = new FoodItem();
+                foodItem.setId(result.getInt(COLUMN_FOOD_ID));
+                foodItem.setName(result.getString(COLUMN_FOOD_NAME));
+                foodItem.setQuantity(result.getInt(COLUMN_FOOD_QUANTITY));
+                foodItem.setPrice(result.getDouble(COLUMN_FOOD_PRICE));
+                foodItem.setCreated(result.getTimestamp(COLUMN_FOOD_CREATED).toInstant());
+                foodItem.setModified(result.getTimestamp(COLUMN_FOOD_MODIFIED).toInstant());
+                result.close();
+                return foodItem;
+            } else {
+                result.close();
+                return null;
             }
-            result.close();
-            queryFoodItem.close();
-            return foodItem;
         } catch (SQLException e) {
             System.out.println("Couldn't query food item : " + e.getMessage());
             return null;
@@ -113,24 +107,21 @@ public class FoodItemDataStore {
                 getFoodItemsQuery.append(" DESC ");
             }
         }
-        try{
-            PreparedStatement queryFoodItems = connection.prepareStatement(getFoodItemsQuery.toString());
+        try(PreparedStatement queryFoodItems = connection.prepareStatement(getFoodItemsQuery.toString())){
             ResultSet result = queryFoodItems.executeQuery();
             List<FoodItem> foodItems = new ArrayList<>();
             while(result.next()){
                 FoodItem foodItem = new FoodItem();
-                foodItem.setId(result.getInt("_id"));
-                foodItem.setName(result.getString("name"));
-                foodItem.setQuantity(result.getInt("quantity"));
-                foodItem.setPrice(result.getDouble("price"));
-                foodItem.setCreated(result.getTimestamp("created").toInstant());
-                foodItem.setModified(result.getTimestamp("modified").toInstant());
+                foodItem.setId(result.getInt(COLUMN_FOOD_ID));
+                foodItem.setName(result.getString(COLUMN_FOOD_NAME));
+                foodItem.setQuantity(result.getInt(COLUMN_FOOD_QUANTITY));
+                foodItem.setPrice(result.getDouble(COLUMN_FOOD_PRICE));
+                foodItem.setCreated(result.getTimestamp(COLUMN_FOOD_CREATED).toInstant());
+                foodItem.setModified(result.getTimestamp(COLUMN_FOOD_MODIFIED).toInstant());
                 foodItems.add(foodItem);
             }
             result.close();
-            queryFoodItems.close();
             return foodItems;
-
         } catch (SQLException e){
             System.out.println("Couldn't query food items : " + e.getMessage());
             return null;
@@ -138,23 +129,19 @@ public class FoodItemDataStore {
     }
 
     public FoodItem updateFoodItemName(String newName, String foodItemName){
-        try{
-            PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_NAME,
-                    Statement.RETURN_GENERATED_KEYS);
+        try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_NAME,
+                Statement.RETURN_GENERATED_KEYS)){
             updateFoodItem.setString(1, newName);
             updateFoodItem.setString(2, foodItemName);
             int rowsAffected = updateFoodItem.executeUpdate();
             if (rowsAffected > 0) {
-                ResultSet generatedKey = updateFoodItem.getGeneratedKeys();
-                FoodItem foodItem = queryFoodItem(generatedKey.getString("name"));
+                ResultSet result = updateFoodItem.getGeneratedKeys();
+                FoodItem foodItem = queryFoodItem(result.getString(COLUMN_FOOD_NAME));
                 updateFoodItemModifiedDate(foodItem.getName());
-                generatedKey.close();
-                updateFoodItem.close();
+                result.close();
                 return foodItem;
             }
-            updateFoodItem.close();
             return null;
-
         } catch (SQLException e){
             System.out.println("Couldn't update food item name : " + e.getMessage());
             return null;
@@ -162,22 +149,19 @@ public class FoodItemDataStore {
     }
 
     public FoodItem updateFoodItemQuantity(int quantity, String foodItemName){
-        try{
-            PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_QUANTITY,
-                    Statement.RETURN_GENERATED_KEYS);
+        try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_QUANTITY,
+                Statement.RETURN_GENERATED_KEYS)){
             updateFoodItem.setInt(1, quantity);
             updateFoodItem.setString(2, foodItemName);
             updateFoodItem.executeUpdate();
             int rowsAffected = updateFoodItem.executeUpdate();
             if (rowsAffected > 0) {
-                ResultSet generatedKey = updateFoodItem.getGeneratedKeys();
-                FoodItem foodItem = queryFoodItem(generatedKey.getString("name"));
+                ResultSet result = updateFoodItem.getGeneratedKeys();
+                FoodItem foodItem = queryFoodItem(result.getString(COLUMN_FOOD_NAME));
                 updateFoodItemModifiedDate(foodItem.getName());
-                generatedKey.close();
-                updateFoodItem.close();
+                result.close();
                 return foodItem;
             }
-            updateFoodItem.close();
             return null;
         } catch (SQLException e){
             System.out.println("Couldn't update food item quantity : " + e.getMessage());
@@ -185,22 +169,19 @@ public class FoodItemDataStore {
         }
     }
     public FoodItem updateFoodItemPrice(double price, String foodItemName){
-        try{
-            PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_PRICE,
-                    Statement.RETURN_GENERATED_KEYS);
+        try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_PRICE,
+                Statement.RETURN_GENERATED_KEYS)){
             updateFoodItem.setDouble(1, price);
             updateFoodItem.setString(2, foodItemName);
             updateFoodItem.executeUpdate();
             int rowsAffected = updateFoodItem.executeUpdate();
             if (rowsAffected > 0) {
-                ResultSet generatedKey = updateFoodItem.getGeneratedKeys();
-                FoodItem foodItem = queryFoodItem(generatedKey.getString("name"));
+                ResultSet result = updateFoodItem.getGeneratedKeys();
+                FoodItem foodItem = queryFoodItem(result.getString(COLUMN_FOOD_NAME));
                 updateFoodItemModifiedDate(foodItem.getName());
-                generatedKey.close();
-                updateFoodItem.close();
+                result.close();
                 return foodItem;
             }
-            updateFoodItem.close();
             return null;
         } catch (SQLException e){
             System.out.println("Couldn't update food item price : " + e.getMessage());
@@ -208,59 +189,29 @@ public class FoodItemDataStore {
         }
     }
 
-    private boolean updateFoodItemModifiedDate(String foodItemName){
-        try{
-            PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_MODIFIED_DATE,
-                    Statement.RETURN_GENERATED_KEYS);
-
-            LocalDateTime modifiedTime = LocalDateTime.now();
-            DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern("dd-MM-yyyy HH-mm-ss");
-            modifiedTime.format(dateTimePattern);
-
-            updateFoodItem.setTimestamp(1, Timestamp.valueOf(modifiedTime));
-            updateFoodItem.setString(2, foodItemName);
-            int rowsAffected = updateFoodItem.executeUpdate();
-            if (rowsAffected > 0){
-                updateFoodItem.close();
-                return true;
-            }
-            updateFoodItem.close();
-            return false;
-        } catch (SQLException e){
-            System.out.println("Couldn't update food last modified date : " + e.getMessage());
-            return false;
-        }
-    }
-
     public boolean removeFoodItem(String foodItem) {
-        try {
-            PreparedStatement removeFoodItem = connection.prepareStatement(DELETE_FOOD_ITEM,
-                    Statement.RETURN_GENERATED_KEYS);
+        try(PreparedStatement removeFoodItem = connection.prepareStatement(DELETE_FOOD_ITEM,
+                Statement.RETURN_GENERATED_KEYS)) {
             removeFoodItem.setString(1, foodItem);
             int rowsAffected = removeFoodItem.executeUpdate();
-            if(rowsAffected > 0){
-                removeFoodItem.close();
-                return true;
-            }
-            removeFoodItem.close();
-            return false;
+            return rowsAffected > 0;
         } catch (SQLException e) {
             System.out.println("Couldn't remove food item : " + e.getMessage());
             return false;
         }
     }
 
-    private static String capitalizeFirstLetter(String input) {
-        StringBuilder result = new StringBuilder();
-        String[] words = input.split("\\s");
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1)).append(" ");
-            }
+    private void updateFoodItemModifiedDate(String foodItemName){
+        try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_MODIFIED_DATE,
+                Statement.RETURN_GENERATED_KEYS)){
+            LocalDateTime modifiedTime = LocalDateTime.now();
+            DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
+            modifiedTime.format(dateTimePattern);
+            updateFoodItem.setTimestamp(1, Timestamp.valueOf(modifiedTime));
+            updateFoodItem.setString(2, foodItemName);
+            updateFoodItem.executeUpdate();
+        } catch (SQLException e){
+            System.out.println("Couldn't update food last modified date : " + e.getMessage());
         }
-        if (!result.isEmpty()) {
-            result.setLength(result.length() - 1);
-        }
-        return result.toString();
     }
 }
