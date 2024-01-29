@@ -31,7 +31,7 @@ public class FoodItemDataStore {
     public static final String UPDATE_FOOD_ITEM_PRICE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_PRICE + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
     public static final String UPDATE_FOOD_ITEM_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_MODIFIED + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
     public static final String DELETE_FOOD_ITEM = "DELETE FROM " + TABLE_FOOD_ITEMS + " WHERE " + COLUMN_FOOD_NAME + " = ?";
-    public static final int ORDER_BY_ASC = 2;
+    public static final int ORDER_BY_ASC = 1;
     private Connection connection;
 
 
@@ -54,7 +54,18 @@ public class FoodItemDataStore {
         }
     }
 
-    public boolean insertFoodItem(String name, int quantity, double price,
+    private void createTable(){
+        try {
+            PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + TABLE_FOOD_ITEMS +
+                "(" + COLUMN_FOOD_ID + "," + COLUMN_FOOD_NAME + " VARCHAR(255)," + COLUMN_FOOD_QUANTITY + " INTEGER," +
+                    COLUMN_FOOD_PRICE + " NUMERIC," + COLUMN_FOOD_CREATED + " TIMESTAMP(0)," + COLUMN_FOOD_MODIFIED + " TIMESTAMP(0))");
+            createTable.executeUpdate();
+        } catch (SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public FoodItem insertFoodItem(String name, int quantity, double price,
                                   LocalDateTime created, LocalDateTime modified){
         try (PreparedStatement insertFoodItem = connection.prepareStatement(INSERT_FOOD_ITEM,
                 Statement.RETURN_GENERATED_KEYS)) {
@@ -64,10 +75,13 @@ public class FoodItemDataStore {
             insertFoodItem.setTimestamp(4, Timestamp.valueOf(created));
             insertFoodItem.setTimestamp(5, Timestamp.valueOf(modified));
             int rowsAffected = insertFoodItem.executeUpdate();
-            return rowsAffected > 0;
+            if (rowsAffected > 0){
+                return queryFoodItem(name);
+            }
+            return null;
         } catch (SQLException e) {
             System.out.println("Couldn't Create Food Item : " + e.getMessage());
-            return false;
+            return null;
         }
     }
 
@@ -135,15 +149,12 @@ public class FoodItemDataStore {
             updateFoodItem.setString(2, foodItemName);
             int rowsAffected = updateFoodItem.executeUpdate();
             if (rowsAffected > 0) {
-                ResultSet result = updateFoodItem.getGeneratedKeys();
-                FoodItem foodItem = queryFoodItem(result.getString(COLUMN_FOOD_NAME));
-                updateFoodItemModifiedDate(foodItem.getName());
-                result.close();
-                return foodItem;
+                updateFoodItemModifiedDate(newName);
+                return queryFoodItem(newName);
             }
             return null;
         } catch (SQLException e){
-            System.out.println("Couldn't update food item name : " + e.getMessage());
+             System.out.println("Couldn't update food item name : " + e.getMessage());
             return null;
         }
     }
@@ -156,11 +167,8 @@ public class FoodItemDataStore {
             updateFoodItem.executeUpdate();
             int rowsAffected = updateFoodItem.executeUpdate();
             if (rowsAffected > 0) {
-                ResultSet result = updateFoodItem.getGeneratedKeys();
-                FoodItem foodItem = queryFoodItem(result.getString(COLUMN_FOOD_NAME));
-                updateFoodItemModifiedDate(foodItem.getName());
-                result.close();
-                return foodItem;
+                updateFoodItemModifiedDate(foodItemName);
+                return queryFoodItem(foodItemName);
             }
             return null;
         } catch (SQLException e){
@@ -176,11 +184,8 @@ public class FoodItemDataStore {
             updateFoodItem.executeUpdate();
             int rowsAffected = updateFoodItem.executeUpdate();
             if (rowsAffected > 0) {
-                ResultSet result = updateFoodItem.getGeneratedKeys();
-                FoodItem foodItem = queryFoodItem(result.getString(COLUMN_FOOD_NAME));
-                updateFoodItemModifiedDate(foodItem.getName());
-                result.close();
-                return foodItem;
+                updateFoodItemModifiedDate(foodItemName);
+                return queryFoodItem(foodItemName);
             }
             return null;
         } catch (SQLException e){

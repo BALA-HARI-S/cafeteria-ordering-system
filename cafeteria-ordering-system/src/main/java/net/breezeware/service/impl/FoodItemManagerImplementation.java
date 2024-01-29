@@ -4,11 +4,9 @@ import net.breezeware.dataStore.FoodItemDataStore;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.service.api.FoodItemManager;
 
-import java.sql.SQLException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 public class FoodItemManagerImplementation implements FoodItemManager{
@@ -16,45 +14,49 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     private final FoodItemDataStore foodItemStore = new FoodItemDataStore();
 
     @Override
-    public void createFoodItem(String name, int quantity, double price) {
+    public FoodItem createFoodItem(String name, int quantity, double price) {
         String foodItemName = capitalizeFirstLetter(name);
         foodItemStore.openConnection();
         FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(foodItemName);
         if(!Objects.isNull(alreadyExistFoodItem)){
             System.out.println("Food Item Already Exist");
-            displayFoodItem(foodItemName);
+            viewFoodItem(foodItemName);
             foodItemStore.closeConnection();
         } else {
             Instant now = Instant.now();
             FoodItem newFoodItem = new FoodItem(foodItemName,quantity,price, now, now);
             LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
             LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
-            boolean result = foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
+
+            FoodItem foodItem = foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
                     newFoodItem.getPrice(), createdDateTime, modifiedDateTime);
-            if(result){
-                displayFoodItem(foodItemName);
+            if(!Objects.isNull(foodItem)){
+                foodItemStore.closeConnection();
+                return foodItem;
             }
-            foodItemStore.closeConnection();
         }
+        foodItemStore.closeConnection();
+        return null;
     }
 
     @Override
-    public void displayFoodItem(String foodItemName) {
+    public void viewFoodItem(String foodItemName) {
         foodItemStore.openConnection();
         FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
         if(!Objects.isNull(foodItem)){
-            System.out.println(foodItem.toString());
+            System.out.println("\n_id | name | quantity | price | created | modified");
+            System.out.println(foodItem);
             foodItemStore.closeConnection();
         } else {
-            System.out.println("Food Item not Available!");
-            foodItemStore.closeConnection();
+            System.out.println("There is no such Food Item, Enter a valid food-item name!");
         }
-
+        foodItemStore.closeConnection();
     }
 
     @Override
-    public void displayAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) {
+    public void viewAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) {
         foodItemStore.openConnection();
+        System.out.println("\n_id | name | quantity | price | created | modified");
         foodItemStore.queryAllFoodItems(isOrderBy, sortOrder, columnName)
                 .forEach(foodItem -> System.out.println(foodItem.toString()));
         foodItemStore.closeConnection();
@@ -73,32 +75,42 @@ public class FoodItemManagerImplementation implements FoodItemManager{
                 foodItemStore.closeConnection();
                 return updatedFoodItem;
             }
-            foodItemStore.closeConnection();
-        }
-        return null;
-    }
-
-    @Override
-    public FoodItem editFoodItemQuantity(int quantity, String foodItem) {
-        foodItemStore.openConnection();
-        FoodItem updatedFoodItem = foodItemStore
-                .updateFoodItemQuantity(quantity, capitalizeFirstLetter(foodItem));
-        if(!Objects.isNull(updatedFoodItem)){
-            foodItemStore.closeConnection();
-            return updatedFoodItem;
         }
         foodItemStore.closeConnection();
         return null;
     }
 
     @Override
-    public FoodItem editFoodItemPrice(double price, String foodItem) {
+    public FoodItem editFoodItemQuantity(int quantity, String foodItemName) {
         foodItemStore.openConnection();
-        FoodItem updatedFoodItem = foodItemStore
-                .updateFoodItemPrice(price, capitalizeFirstLetter(foodItem));
-        if(!Objects.isNull(updatedFoodItem)){
-            foodItemStore.closeConnection();
-            return updatedFoodItem;
+        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
+        if(Objects.isNull(alreadyExistFoodItem)){
+            System.out.println("Food Item not available");
+        } else {
+            FoodItem updatedFoodItem = foodItemStore
+                    .updateFoodItemQuantity(quantity, capitalizeFirstLetter(foodItemName));
+            if(!Objects.isNull(updatedFoodItem)){
+                foodItemStore.closeConnection();
+                return updatedFoodItem;
+            }
+        }
+        foodItemStore.closeConnection();
+        return null;
+    }
+
+    @Override
+    public FoodItem editFoodItemPrice(double price, String foodItemName) {
+        foodItemStore.openConnection();
+        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
+        if(Objects.isNull(alreadyExistFoodItem)){
+            System.out.println("Food Item not available");
+        } else {
+            FoodItem updatedFoodItem = foodItemStore
+                    .updateFoodItemPrice(price, capitalizeFirstLetter(foodItemName));
+            if(!Objects.isNull(updatedFoodItem)){
+                foodItemStore.closeConnection();
+                return updatedFoodItem;
+            }
         }
         foodItemStore.closeConnection();
         return null;

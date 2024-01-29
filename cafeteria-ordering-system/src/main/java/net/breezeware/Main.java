@@ -4,10 +4,7 @@ import net.breezeware.entity.FoodItem;
 import net.breezeware.service.api.FoodItemManager;
 import net.breezeware.service.impl.FoodItemManagerImplementation;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
@@ -38,14 +35,16 @@ public class Main {
                     scanner.nextLine();
                     System.out.print("Food Item Price(₹): ");
                     double foodItemPrice = scanner.nextDouble();
-                    foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
+                    FoodItem foodItem = foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
+                    System.out.println("Food Item successfully Created!");
+                    foodItemManager.viewFoodItem(foodItem.getName());
                 }
                 case 2 -> {
                     System.out.println("Cafeteria Admin Operation: Display Food Item");
                     scanner.nextLine();
                     System.out.print("Food Item Name: ");
                     String foodItemName = scanner.nextLine();
-                    foodItemManager.displayFoodItem(foodItemName);
+                    foodItemManager.viewFoodItem(foodItemName);
                 }
                 case 3 -> {
                     System.out.println("Cafeteria Admin Operation: Display All Food Items");
@@ -84,7 +83,7 @@ public class Main {
                             isAscending = true;
                         }
                     }
-                    foodItemManager.displayAllFoodItems(isOrderBy, isAscending? 1: 2, columnName);
+                    foodItemManager.viewAllFoodItems(isOrderBy, isAscending? 1: 2, columnName);
                 }
                 case 4 -> {
                     System.out.println("Cafeteria Admin Operation: Edit Food Item");
@@ -103,30 +102,50 @@ public class Main {
                             System.out.print("Enter a New name for the food-item: ");
                             String newName = scanner.nextLine();
                             FoodItem updatedFoodItem = foodItemManager.editFoodItemName(newName, foodItem);
-                            foodItemManager.displayFoodItem(updatedFoodItem.getName());
+                            if(Objects.isNull(updatedFoodItem)){
+                                System.out.println("There is no such Food Item, Enter a valid food-item name!");
+                            } else {
+                                foodItemManager.viewFoodItem(updatedFoodItem.getName());
+                            }
                         }
                         case 2 -> {
                             System.out.println("Cafeteria Admin Operation: Edit Food Item Quantity");
                             scanner.nextLine();
-                            System.out.println("Which food-item quantity do you want to change: ");
+                            System.out.print("Which food-item quantity do you want to change: ");
                             String foodItem = scanner.nextLine();
-                            System.out.println("Enter a New quantity for the food-item: ");
+                            System.out.print("Enter a New quantity for the food-item: ");
                             int newQuantity = scanner.nextInt();
                             FoodItem updatedFoodItem = foodItemManager.editFoodItemQuantity(newQuantity, foodItem);
-                            foodItemManager.displayFoodItem(updatedFoodItem.getName());
+                            if(Objects.isNull(updatedFoodItem)){
+                                System.out.println("There is no such Food Item, Enter a valid food-item name!");
+                            } else {
+                                foodItemManager.viewFoodItem(updatedFoodItem.getName());
+                            }
                         }
                         case 3 -> {
                             System.out.println("Cafeteria Admin Operation: Edit Food Item Price");
                             scanner.nextLine();
-                            System.out.println("Which food-item price do you want to change: ");
+                            System.out.print("Which food-item price do you want to change: ");
                             String foodItem = scanner.nextLine();
-                            System.out.println("Enter a New price for the food-item: ");
+                            System.out.print("Enter a New price for the food-item: ");
                             double newPrice = scanner.nextDouble();
                             FoodItem updatedFoodItem = foodItemManager.editFoodItemPrice(newPrice, foodItem);
-                            foodItemManager.displayFoodItem(updatedFoodItem.getName());
+                            if(Objects.isNull(updatedFoodItem)){
+                                System.out.println("There is no such Food Item, Enter a valid food-item name!");
+                            } else {
+                                foodItemManager.viewFoodItem(updatedFoodItem.getName());
+                            }
                         }
 
                     }
+                }
+                case 5 ->{
+                    System.out.println("Cafeteria Admin Operation: Remove Food Item");
+                    scanner.nextLine();
+                    System.out.print("Which food-item do you want to remove: ");
+                    String foodItemName = scanner.nextLine();
+                    boolean result = foodItemManager.removeFoodItem(foodItemName);
+                    System.out.println(result? "Food Item successfully Removed!" : "Couldn't Remove the Food Item!");
                 }
 
             }
@@ -134,14 +153,16 @@ public class Main {
     }
 
     private static void cafeteriaAdminMenu(){
-        String cafeteriaAdminOperations = """
+        String cafeteriaOperations = """
+                CAFETERIA ADMIN
                 1) Create Food Item
-                2) Display Food Item
-                3) Display All Food Items
+                2) View Food Item
+                3) View All Food Items
                 4) Edit Food Item
-                5) Remove Food Item
+                5) Delete Food Item
+                
                 Press 0 to exit() Application.
                 """;
-        System.out.println(cafeteriaAdminOperations);
+        System.out.println(cafeteriaOperations);
     }
 }

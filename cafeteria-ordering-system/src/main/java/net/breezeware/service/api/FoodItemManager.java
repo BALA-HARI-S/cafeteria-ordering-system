@@ -2,11 +2,6 @@ package net.breezeware.service.api;
 
 import net.breezeware.entity.FoodItem;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
 public interface FoodItemManager {
 
     /**
@@ -15,9 +10,9 @@ public interface FoodItemManager {
      * @param quantity - Food Quantity
      * @param price - Food price
      */
-    void createFoodItem(String name, int quantity, double price);
-    void displayFoodItem(String foodItemName);
-    void displayAllFoodItems(boolean isOrderBy, int sortOrder, String columnName);
+    FoodItem createFoodItem(String name, int quantity, double price);
+    void viewFoodItem(String foodItemName);
+    void viewAllFoodItems(boolean isOrderBy, int sortOrder, String columnName);
     FoodItem editFoodItemName(String newName, String foodItem);
     FoodItem editFoodItemQuantity(int quantity, String foodItem);
     FoodItem editFoodItemPrice(double price, String foodItem);
