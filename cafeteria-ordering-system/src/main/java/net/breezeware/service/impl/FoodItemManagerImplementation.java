@@ -40,6 +40,18 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     }
 
     @Override
+    public FoodItem getFoodItem(String foodItemName) {
+        foodItemStore.openConnection();
+        FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
+        if(!Objects.isNull(foodItem)){
+            foodItemStore.closeConnection();
+            return foodItem;
+        }
+        foodItemStore.closeConnection();
+        return null;
+    }
+
+    @Override
     public void viewFoodItem(String foodItemName) {
         foodItemStore.openConnection();
         FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));

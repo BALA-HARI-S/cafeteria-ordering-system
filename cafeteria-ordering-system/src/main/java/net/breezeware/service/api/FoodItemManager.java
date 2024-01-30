@@ -11,6 +11,7 @@ public interface FoodItemManager {
      * @param price - Food price
      */
     FoodItem createFoodItem(String name, int quantity, double price);
+    FoodItem getFoodItem(String foodItemName);
     void viewFoodItem(String foodItemName);
     void viewAllFoodItems(boolean isOrderBy, int sortOrder, String columnName);
     FoodItem editFoodItemName(String newName, String foodItem);
