@@ -23,7 +23,7 @@
 hs_err_pid*
 replay_pid*
 
-.idea/
+cafeteria-ordering-system/.idea/
 *.iml
 
-.idea/workspace.xml
+
