@@ -1,6 +1,9 @@
 package net.breezeware.service.api;
 
 import net.breezeware.entity.FoodItem;
+import net.breezeware.exception.CustomException;
+
+import java.util.List;
 
 public interface FoodItemManager {
 
@@ -10,13 +13,11 @@ public interface FoodItemManager {
      * @param quantity - Food Quantity
      * @param price - Food price
      */
-    FoodItem createFoodItem(String name, int quantity, double price);
-    FoodItem getFoodItem(String foodItemName);
-    void viewFoodItem(String foodItemName);
-    void viewAllFoodItems(boolean isOrderBy, int sortOrder, String columnName);
-    FoodItem editFoodItemName(String newName, String foodItem);
-    FoodItem editFoodItemQuantity(int quantity, String foodItem);
-    FoodItem editFoodItemPrice(double price, String foodItem);
-    boolean removeFoodItem(String foodItemName);
-
+    FoodItem createFoodItem(String name, int quantity, double price) throws CustomException;
+    FoodItem retrieveFoodItem(String foodItemName) throws CustomException;
+    List<FoodItem> retrieveAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) throws CustomException;
+    FoodItem updateFoodItemName(String newName, String foodItem) throws CustomException;
+    FoodItem updateFoodItemQuantity(int quantity, String foodItem) throws CustomException;
+    FoodItem updateFoodItemPrice(double price, String foodItem) throws CustomException;
+    boolean deleteFoodItem(String foodItemName) throws CustomException;
 }
