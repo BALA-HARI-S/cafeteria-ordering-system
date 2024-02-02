@@ -2,6 +2,7 @@ package net.breezeware.service.impl;
 
 import net.breezeware.dataStore.OrderDataStore;
 import net.breezeware.entity.*;
+import net.breezeware.exception.CustomException;
 import net.breezeware.service.api.FoodItemManager;
 import net.breezeware.service.api.FoodMenuManager;
 import net.breezeware.service.api.PlaceOrderManager;
@@ -52,11 +53,11 @@ public class PlaceOrderManagerImplementation implements PlaceOrderManager {
     }
 
     @Override
-    public void editFoodItemsInOrder(Order order, List<String> newFoodItems) {
+    public void editFoodItemsInOrder(Order order, List<String> newFoodItems) throws CustomException {
          order.setOrderedFoodItems(newFoodItems);
         double totalCost = 0.00;
         for(String foodItem: order.getOrderedFoodItems()){
-            totalCost += foodItemManager.getFoodItem(foodItem).getPrice();
+            totalCost += foodItemManager.retrieveFoodItem(foodItem).getPrice();
         }
         order.setTotalCost(totalCost);
     }

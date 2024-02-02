@@ -3,6 +3,7 @@ package net.breezeware.dataStore;
 import net.breezeware.entity.AvailableDay;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
+import net.breezeware.exception.CustomException;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -133,12 +134,16 @@ public class FoodMenuDataStore {
             foodItemDataStore.openConnection();
             while (result.next()){
                 String foodItemName = result.getString(COLUMN_FOOD_ITEM_NAME);
-                foodMenuItems.add(foodItemDataStore.queryFoodItem(foodItemName));
+                try{
+                    foodMenuItems.add(foodItemDataStore.queryFoodItem(foodItemName));
+                } catch (CustomException e){
+                    throw new CustomException(e.getMessage());
+                }
             }
             foodItemDataStore.closeConnection();
             result.close();
             return foodMenuItems;
-        } catch (SQLException | RuntimeException e){
+        } catch (SQLException | RuntimeException | CustomException e){
             throw new RuntimeException(e);
         }
     }

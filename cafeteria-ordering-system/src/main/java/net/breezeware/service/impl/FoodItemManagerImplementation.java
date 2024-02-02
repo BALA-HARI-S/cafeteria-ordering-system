@@ -1,5 +1,6 @@
 package net.breezeware.service.impl;
 
+import net.breezeware.exception.CustomException;
 import net.breezeware.dataStore.FoodItemDataStore;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.service.api.FoodItemManager;
@@ -7,6 +8,7 @@ import net.breezeware.service.api.FoodItemManager;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Objects;
 
 public class FoodItemManagerImplementation implements FoodItemManager{
@@ -14,88 +16,54 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     private final FoodItemDataStore foodItemStore = new FoodItemDataStore();
 
     @Override
-    public FoodItem createFoodItem(String name, int quantity, double price) {
+    public FoodItem createFoodItem(String name, int quantity, double price) throws CustomException {
         String foodItemName = capitalizeFirstLetter(name);
         foodItemStore.openConnection();
-        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(foodItemName);
-        if(!Objects.isNull(alreadyExistFoodItem)){
-            System.out.println("Food Item Already Exist");
-            viewFoodItem(foodItemName);
-            foodItemStore.closeConnection();
-        } else {
-            Instant now = Instant.now();
-            FoodItem newFoodItem = new FoodItem(foodItemName,quantity,price, now, now);
-            LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
-            LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
+        Instant now = Instant.now();
+        FoodItem newFoodItem = new FoodItem(foodItemName,quantity,price, now, now);
+        LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
+        LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
 
-            FoodItem foodItem = foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
-                    newFoodItem.getPrice(), createdDateTime, modifiedDateTime);
-            if(!Objects.isNull(foodItem)){
-                foodItemStore.closeConnection();
-                return foodItem;
-            }
-        }
+        FoodItem foodItem = foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
+                newFoodItem.getPrice(), createdDateTime, modifiedDateTime);
         foodItemStore.closeConnection();
-        return null;
+        return foodItem;
     }
 
     @Override
-    public FoodItem getFoodItem(String foodItemName) {
+    public FoodItem retrieveFoodItem(String foodItemName) throws CustomException {
         foodItemStore.openConnection();
         FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
-        if(!Objects.isNull(foodItem)){
-            foodItemStore.closeConnection();
-            return foodItem;
+        foodItemStore.closeConnection();
+        return foodItem;
+    }
+
+    @Override
+    public List<FoodItem> retrieveAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) throws CustomException {
+        foodItemStore.openConnection();
+        List<FoodItem> foodItems = foodItemStore.queryAllFoodItems(isOrderBy, sortOrder, columnName);
+        foodItemStore.closeConnection();
+        return foodItems;
+    }
+
+    @Override
+    public FoodItem updateFoodItemName(String newName, String foodItemName) throws CustomException {
+        foodItemStore.openConnection();
+        FoodItem updatedFoodItem = foodItemStore
+                .updateFoodItemName(capitalizeFirstLetter(newName), capitalizeFirstLetter(foodItemName));
+        foodItemStore.closeConnection();
+        return updatedFoodItem;
+    }
+
+    @Override
+    public FoodItem updateFoodItemQuantity(int quantity, String foodItemName) throws CustomException {
+        foodItemStore.openConnection();
+        FoodItem alreadyExistFoodItem = new FoodItem();
+        try{
+            alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
+        }catch (CustomException e){
+            throw new CustomException(e.getMessage());
         }
-        foodItemStore.closeConnection();
-        return null;
-    }
-
-    @Override
-    public void viewFoodItem(String foodItemName) {
-        foodItemStore.openConnection();
-        FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
-        if(!Objects.isNull(foodItem)){
-            System.out.println("\n_id | name | quantity | price | created | modified");
-            System.out.println(foodItem);
-            foodItemStore.closeConnection();
-        } else {
-            System.out.println("There is no such Food Item, Enter a valid food-item name!");
-        }
-        foodItemStore.closeConnection();
-    }
-
-    @Override
-    public void viewAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) {
-        foodItemStore.openConnection();
-        System.out.println("\n_id | name | quantity | price | created | modified");
-        foodItemStore.queryAllFoodItems(isOrderBy, sortOrder, columnName)
-                .forEach(foodItem -> System.out.println(foodItem.toString()));
-        foodItemStore.closeConnection();
-    }
-
-    @Override
-    public FoodItem editFoodItemName(String newName, String foodItemName) {
-        foodItemStore.openConnection();
-        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
-        if(Objects.isNull(alreadyExistFoodItem)){
-            System.out.println("Food Item not available");
-        } else {
-            FoodItem updatedFoodItem = foodItemStore
-                    .updateFoodItemName(capitalizeFirstLetter(newName), capitalizeFirstLetter(foodItemName));
-            if(!Objects.isNull(updatedFoodItem)){
-                foodItemStore.closeConnection();
-                return updatedFoodItem;
-            }
-        }
-        foodItemStore.closeConnection();
-        return null;
-    }
-
-    @Override
-    public FoodItem editFoodItemQuantity(int quantity, String foodItemName) {
-        foodItemStore.openConnection();
-        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
         if(Objects.isNull(alreadyExistFoodItem)){
             System.out.println("Food Item not available");
         } else {
@@ -111,32 +79,23 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     }
 
     @Override
-    public FoodItem editFoodItemPrice(double price, String foodItemName) {
+    public FoodItem updateFoodItemPrice(double price, String foodItemName) throws CustomException {
         foodItemStore.openConnection();
-        FoodItem alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
-        if(Objects.isNull(alreadyExistFoodItem)){
-            System.out.println("Food Item not available");
-        } else {
-            FoodItem updatedFoodItem = foodItemStore
-                    .updateFoodItemPrice(price, capitalizeFirstLetter(foodItemName));
-            if(!Objects.isNull(updatedFoodItem)){
-                foodItemStore.closeConnection();
-                return updatedFoodItem;
-            }
-        }
+        FoodItem updatedFoodItem = foodItemStore
+                .updateFoodItemPrice(price, capitalizeFirstLetter(foodItemName));
         foodItemStore.closeConnection();
-        return null;
+        return updatedFoodItem;
     }
 
     @Override
-    public boolean removeFoodItem(String foodItemName) {
+    public boolean deleteFoodItem(String foodItemName) throws CustomException {
         foodItemStore.openConnection();
-        boolean result = foodItemStore.removeFoodItem(capitalizeFirstLetter(foodItemName));
+        boolean result = foodItemStore.deleteFoodItem(capitalizeFirstLetter(foodItemName));
         foodItemStore.closeConnection();
         return result;
     }
 
-    private static String capitalizeFirstLetter(String input) {
+    private String capitalizeFirstLetter(String input) {
         StringBuilder result = new StringBuilder();
         String[] words = input.split("\\s");
         for (String word : words) {
@@ -150,6 +109,5 @@ public class FoodItemManagerImplementation implements FoodItemManager{
         }
         return result.toString();
     }
-
 
 }

@@ -1,5 +1,6 @@
 package net.breezeware.dataStore;
 
+import net.breezeware.exception.CustomException;
 import net.breezeware.entity.FoodItem;
 
 import java.sql.*;
@@ -36,37 +37,28 @@ public class FoodItemDataStore {
 
 
 
-    public void openConnection(){
+    public void openConnection() throws CustomException {
         try {
             connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
         } catch (SQLException e) {
-            System.out.println("Couldn't connect to database: " + e.getMessage());
+            throw new CustomException("Couldn't connect to database: "+ e.getMessage());
         }
     }
 
-    public void closeConnection(){
+    public void closeConnection() throws CustomException {
         try {
             if (!Objects.isNull(connection)){
                 connection.close();
             }
         } catch (SQLException e) {
-            System.out.println("Couldn't close connection: " + e.getMessage());
-        }
-    }
-
-    private void createTable(){
-        try {
-            PreparedStatement createTable = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + TABLE_FOOD_ITEMS +
-                "(" + COLUMN_FOOD_ID + "," + COLUMN_FOOD_NAME + " VARCHAR(255)," + COLUMN_FOOD_QUANTITY + " INTEGER," +
-                    COLUMN_FOOD_PRICE + " NUMERIC," + COLUMN_FOOD_CREATED + " TIMESTAMP(0)," + COLUMN_FOOD_MODIFIED + " TIMESTAMP(0))");
-            createTable.executeUpdate();
-        } catch (SQLException e){
-            System.out.println(e.getMessage());
+            throw new CustomException("Couldn't close connection: " + e.getMessage());
         }
     }
 
     public FoodItem insertFoodItem(String name, int quantity, double price,
-                                  LocalDateTime created, LocalDateTime modified){
+                                  LocalDateTime created, LocalDateTime modified) throws CustomException {
+        int rowsAffected = 0;
+        FoodItem foodItem = new FoodItem();
         try (PreparedStatement insertFoodItem = connection.prepareStatement(INSERT_FOOD_ITEM,
                 Statement.RETURN_GENERATED_KEYS)) {
             insertFoodItem.setString(1, name);
@@ -74,18 +66,17 @@ public class FoodItemDataStore {
             insertFoodItem.setDouble(3, price);
             insertFoodItem.setTimestamp(4, Timestamp.valueOf(created));
             insertFoodItem.setTimestamp(5, Timestamp.valueOf(modified));
-            int rowsAffected = insertFoodItem.executeUpdate();
-            if (rowsAffected > 0){
-                return queryFoodItem(name);
-            }
-            return null;
+            rowsAffected = insertFoodItem.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Couldn't Create Food Item : " + e.getMessage());
-            return null;
+            throw new CustomException("Couldn't Create Food Item");
         }
+        if (rowsAffected > 0) {
+            foodItem = queryFoodItem(name);
+        }
+        return foodItem;
     }
 
-    public FoodItem queryFoodItem(String name){
+    public FoodItem queryFoodItem(String name) throws CustomException {
         try (PreparedStatement queryFoodItem = connection.prepareStatement(QUERY_FOOD_ITEM)){
             queryFoodItem.setString(1,name);
             ResultSet result = queryFoodItem.executeQuery();
@@ -100,16 +91,15 @@ public class FoodItemDataStore {
                 result.close();
                 return foodItem;
             } else {
-                result.close();
-                return null;
+            result.close();
+            throw new CustomException("Food Item not found for name: " + name);
             }
         } catch (SQLException e) {
-            System.out.println("Couldn't query food item : " + e.getMessage());
-            return null;
+            throw new CustomException("Couldn't Retrieve Food Item");
         }
     }
 
-    public List<FoodItem> queryAllFoodItems(boolean isOrderBy, int sortOrder, String columnName){
+    public List<FoodItem> queryAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) throws CustomException {
         StringBuilder getFoodItemsQuery = new StringBuilder("SELECT * FROM ");
         getFoodItemsQuery.append(TABLE_FOOD_ITEMS);
         if (isOrderBy) {
@@ -137,12 +127,11 @@ public class FoodItemDataStore {
             result.close();
             return foodItems;
         } catch (SQLException e){
-            System.out.println("Couldn't query food items : " + e.getMessage());
-            return null;
+            throw new CustomException("Couldn't Retrieve Food Items");
         }
     }
 
-    public FoodItem updateFoodItemName(String newName, String foodItemName){
+    public FoodItem updateFoodItemName(String newName, String foodItemName) throws CustomException {
         try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_NAME,
                 Statement.RETURN_GENERATED_KEYS)){
             updateFoodItem.setString(1, newName);
@@ -154,8 +143,7 @@ public class FoodItemDataStore {
             }
             return null;
         } catch (SQLException e){
-             System.out.println("Couldn't update food item name : " + e.getMessage());
-            return null;
+            throw new CustomException("Couldn't Update Food Item Name");
         }
     }
 
@@ -174,9 +162,11 @@ public class FoodItemDataStore {
         } catch (SQLException e){
             System.out.println("Couldn't update food item quantity : " + e.getMessage());
             return null;
+        } catch (CustomException e) {
+            throw new RuntimeException(e);
         }
     }
-    public FoodItem updateFoodItemPrice(double price, String foodItemName){
+    public FoodItem updateFoodItemPrice(double price, String foodItemName) throws CustomException {
         try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_PRICE,
                 Statement.RETURN_GENERATED_KEYS)){
             updateFoodItem.setDouble(1, price);
@@ -189,20 +179,18 @@ public class FoodItemDataStore {
             }
             return null;
         } catch (SQLException e){
-            System.out.println("Couldn't update food item price : " + e.getMessage());
-            return null;
+            throw new CustomException("Couldn't Update Food Item Price");
         }
     }
 
-    public boolean removeFoodItem(String foodItem) {
+    public boolean deleteFoodItem(String foodItem) throws CustomException {
         try(PreparedStatement removeFoodItem = connection.prepareStatement(DELETE_FOOD_ITEM,
                 Statement.RETURN_GENERATED_KEYS)) {
             removeFoodItem.setString(1, foodItem);
             int rowsAffected = removeFoodItem.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
-            System.out.println("Couldn't remove food item : " + e.getMessage());
-            return false;
+            throw new CustomException("Couldn't Delete Food Item");
         }
     }
 

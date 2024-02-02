@@ -4,15 +4,19 @@ import net.breezeware.entity.AvailableDay;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
 import net.breezeware.entity.Order;
+import net.breezeware.exception.CustomException;
 import net.breezeware.service.api.*;
 import net.breezeware.service.impl.*;
 
+import javax.swing.text.View;
+import java.awt.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.List;
 
 public class Main {
 
@@ -25,7 +29,11 @@ public class Main {
     private static Order confirmedOrder;
     private static final Scanner scanner = new Scanner(System.in);
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws CustomException {
+
+        System.out.println("Today's Menu");
+        foodMenuManager.
+
         boolean isApplicationRunning = true;
 
         do{
@@ -47,16 +55,31 @@ public class Main {
                     scanner.nextLine();
                     System.out.print("Food Item Price(₹): ");
                     double foodItemPrice = scanner.nextDouble();
-                    FoodItem foodItem = foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
-                    System.out.println("Food Item successfully Created!");
-                    foodItemManager.viewFoodItem(foodItem.getName());
+                    try{
+                        System.out.println("""
+                                Food Item Already Exist
+                                _id | name | quantity | price | created | modified
+                                """+foodItemManager.retrieveFoodItem(foodItemName));
+                    } catch (CustomException e){
+                        FoodItem foodItem = foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
+                        System.out.println("""
+                                Food Item Created
+                                _id | name | quantity | price | created | modified
+                                """+foodItem);
+                    }
                 }
                 case 2 -> {
                     System.out.println("Cafeteria Admin Operation: Display Food Item");
                     scanner.nextLine();
                     System.out.print("Food Item Name: ");
                     String foodItemName = scanner.nextLine();
-                    foodItemManager.viewFoodItem(foodItemName);
+                    try{
+                        System.out.println("""
+                                _id | name | quantity | price | created | modified
+                                """+foodItemManager.retrieveFoodItem(foodItemName));
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
+                    }
                 }
                 case 3 -> {
                     System.out.println("Cafeteria Admin Operation: Display All Food Items");
@@ -95,68 +118,95 @@ public class Main {
                             isAscending = true;
                         }
                     }
-                    foodItemManager.viewAllFoodItems(isOrderBy, isAscending? 1: 2, columnName);
+                    try{
+                        List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(isOrderBy, isAscending? 1: 2, columnName);
+                        System.out.println("_id | name | quantity | price | created | modified");
+                        foodItems.forEach(System.out::println);
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
+                    }
+
                 }
                 case 4 -> {
                     System.out.println("Cafeteria Admin Operation: Edit Food Item");
-                    System.out.print("""
+                    boolean isEditingFoodItem = true;
+                    while(isEditingFoodItem){
+                        System.out.print("""
                             1) Edit Food Item Name
-                            2) Edit Food Item Quantity
-                            3) Edit Food Item Price
+                            2) Edit Food Item Price
+                            3) Exit
                             Option :""");
-                    int editOption = scanner.nextInt();
-                    switch (editOption){
-                        case 1 -> {
-                            System.out.println("Cafeteria Admin Operation: Edit Food Item Name");
-                            scanner.nextLine();
-                            System.out.print("Which food-item name do you want to change: ");
-                            String foodItem = scanner.nextLine();
-                            System.out.print("Enter a New name for the food-item: ");
-                            String newName = scanner.nextLine();
-                            FoodItem updatedFoodItem = foodItemManager.editFoodItemName(newName, foodItem);
-                            if(Objects.isNull(updatedFoodItem)){
-                                System.out.println("There is no such Food Item, Enter a valid food-item name!");
-                            } else {
-                                foodItemManager.viewFoodItem(updatedFoodItem.getName());
+                        int editOption = scanner.nextInt();
+                        switch (editOption){
+                            case 1 -> {
+                                System.out.println("Cafeteria Admin Operation: Edit Food Item Name");
+                                List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(true, 1, "_id");
+                                System.out.println("_id | name | quantity | price | created | modified");
+                                foodItems.forEach(System.out::println);
+                                scanner.nextLine();
+                                System.out.print("Which Food Item Name do you want to change(Food Item Name): ");
+                                String foodItem = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                try{
+                                    System.out.println("Changing Name for Food Item : "+foodItemManager.retrieveFoodItem(foodItem).getName());
+                                    System.out.print("Enter a New name for the Food Item: ");
+                                    String newFoodItemName = scanner.nextLine();
+                                    try{
+                                        System.out.println("""
+                                                Food Item Already Exist with that Name
+                                                _id | name | quantity | price | created | modified
+                                                """+foodItemManager.retrieveFoodItem(newFoodItemName));
+                                    } catch (CustomException e){
+                                        FoodItem updatedFoodItem = foodItemManager.updateFoodItemName(newFoodItemName, foodItem);
+                                        System.out.println("""
+                                                Food Item Updated
+                                                _id | name | quantity | price | created | modified
+                                                """+foodItemManager.retrieveFoodItem(updatedFoodItem.getName()));
+                                    }
+                                } catch (CustomException e){
+                                    System.out.println(e.getMessage());
+                                }
                             }
-                        }
-                        case 2 -> {
-                            System.out.println("Cafeteria Admin Operation: Edit Food Item Quantity");
-                            scanner.nextLine();
-                            System.out.print("Which food-item quantity do you want to change: ");
-                            String foodItem = scanner.nextLine();
-                            System.out.print("Enter a New quantity for the food-item: ");
-                            int newQuantity = scanner.nextInt();
-                            FoodItem updatedFoodItem = foodItemManager.editFoodItemQuantity(newQuantity, foodItem);
-                            if(Objects.isNull(updatedFoodItem)){
-                                System.out.println("There is no such Food Item, Enter a valid food-item name!");
-                            } else {
-                                foodItemManager.viewFoodItem(updatedFoodItem.getName());
+                            case 2 -> {
+                                System.out.println("Cafeteria Admin Operation: Edit Food Item Price");
+                                List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(true, 1, "_id");
+                                System.out.println("_id | name | quantity | price | created | modified");
+                                foodItems.forEach(System.out::println);
+                                scanner.nextLine();
+                                System.out.print("Which food-item price do you want to change(Food Item Name): ");
+                                String foodItem = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                try{
+                                    System.out.println("Changing Price for Food Item : "+foodItemManager.retrieveFoodItem(foodItem).getName());
+                                    System.out.print("Enter a New Price for the food-item(₹0.00): ");
+                                    double newPrice = scanner.nextDouble();
+                                    FoodItem updatedFoodItem = foodItemManager.updateFoodItemPrice(newPrice, foodItem);
+                                    System.out.println("""
+                                            Food Item Updated
+                                            _id | name | quantity | price | created | modified
+                                            """+foodItemManager.retrieveFoodItem(updatedFoodItem.getName()));
+                                } catch (CustomException e){
+                                    System.out.println(e.getMessage());
+                                }
                             }
-                        }
-                        case 3 -> {
-                            System.out.println("Cafeteria Admin Operation: Edit Food Item Price");
-                            scanner.nextLine();
-                            System.out.print("Which food-item price do you want to change: ");
-                            String foodItem = scanner.nextLine();
-                            System.out.print("Enter a New price for the food-item: ");
-                            double newPrice = scanner.nextDouble();
-                            FoodItem updatedFoodItem = foodItemManager.editFoodItemPrice(newPrice, foodItem);
-                            if(Objects.isNull(updatedFoodItem)){
-                                System.out.println("There is no such Food Item, Enter a valid food-item name!");
-                            } else {
-                                foodItemManager.viewFoodItem(updatedFoodItem.getName());
+                            case 3 -> {
+                                isEditingFoodItem = false;
                             }
                         }
                     }
                 }
                 case 5 ->{
                     System.out.println("Cafeteria Admin Operation: Delete Food Item");
+                    List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(true, 1, "_id");
+                    System.out.println("_id | name | quantity | price | created | modified");
+                    foodItems.forEach(System.out::println);
                     scanner.nextLine();
-                    System.out.print("Which food-item do you want to remove: ");
+                    System.out.print("Which food-item do you want to remove(Food Item Name): ");
                     String foodItemName = scanner.nextLine();
-                    boolean result = foodItemManager.removeFoodItem(foodItemName);
-                    System.out.println(result? "Food Item successfully Removed!" : "Couldn't Remove the Food Item!");
+                    try{
+                        boolean result = foodItemManager.deleteFoodItem(foodItemName);
+                        System.out.println(result? "Food Item successfully Removed!" : "No such Food Item");
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
+                    }
                 }
                 case 6 -> {
                     System.out.println("Cafeteria Admin Operation: Create Food Menu");
@@ -203,7 +253,7 @@ public class Main {
                         int foodMenuId = foodMenu.getId();
                         System.out.print("Enter Food Item Name to Add: ");
                         String foodItemName = scanner.nextLine();
-                        FoodItem foodItem = foodItemManager.getFoodItem(foodItemName);
+                        FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                         if (!Objects.isNull(foodItem)){
                             int foodItemId = foodItem.getId();
                             boolean result = foodMenuManager.addFoodItemsToMenu(foodMenuId, foodItemId);
@@ -225,7 +275,7 @@ public class Main {
                         int foodMenuId = foodMenu.getId();
                         System.out.print("Enter Food Item Name to Delete: ");
                         String foodItemName = scanner.nextLine();
-                        FoodItem foodItem = foodItemManager.getFoodItem(foodItemName);
+                        FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                         if (!Objects.isNull(foodItem)){
                             int foodItemId = foodItem.getId();
                             boolean result = foodMenuManager.removeFoodItemFromMenu(foodMenuId,foodItemId);
@@ -279,7 +329,7 @@ public class Main {
                                 String foodMenuName = scanner.nextLine();
                                 FoodMenu foodMenu = foodMenuManager.getFoodMenu(foodMenuName);
                                 if(!Objects.isNull(foodMenu)){
-                                    System.out.print("Enter a New Food Menu Available Days(Day1,Day2,..): ");
+                                    System.out.print("Enter a New Food Menu Available Days(Day1,Day2,..): ");// TODO : change to mon tue
                                     String newFoodMenuAvailableDays = scanner.nextLine();
                                     List<AvailableDay> availableDays = convertStringTOList(newFoodMenuAvailableDays);
                                     FoodMenu updatedMenu = foodMenuManager.editFoodMenuAvailableDay(availableDays, foodMenuName);
@@ -355,11 +405,11 @@ public class Main {
                     String[] selectedFoodItems = scanner.nextLine().split(",");
                     List<String> foodItems = new ArrayList<>();
                     for (String foodItemName: selectedFoodItems){
-                        foodItems.add(foodItemManager.getFoodItem(foodItemName).getName());
+                        foodItems.add(foodItemManager.retrieveFoodItem(foodItemName).getName());
                     }
                     double totalCost = 0.00;
                     for(String foodItem: selectedFoodItems){
-                        totalCost += foodItemManager.getFoodItem(foodItem).getPrice();
+                        totalCost += foodItemManager.retrieveFoodItem(foodItem).getPrice();
                     }
                     createdOrder = placeOrderManager.createOrder(customerName,foodItems,deliveryLocation,deliveryDateTime,totalCost);
                     System.out.println(Objects.isNull(createdOrder)? "Something went wrong! Cannot Create Order" : "Order Created!");
@@ -375,7 +425,7 @@ public class Main {
                         System.out.println("Selected Food Items");
                         System.out.println("Food Item  |  Quantity  |  Price");
                         for (String foodItemName: createdOrder.getOrderedFoodItems()){
-                            FoodItem foodItem = foodItemManager.getFoodItem(foodItemName);
+                            FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                             System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
                         }
                     }
@@ -407,7 +457,7 @@ public class Main {
                                 String[] selectedFoodItems = scanner.nextLine().split(",");
                                 List<String> foodItems = new ArrayList<>();
                                 for (String foodItemName: selectedFoodItems){
-                                    foodItems.add(foodItemManager.getFoodItem(foodItemName).getName());
+                                    foodItems.add(foodItemManager.retrieveFoodItem(foodItemName).getName());
                                 }
                                 placeOrderManager.editFoodItemsInOrder(createdOrder, foodItems);
                                 System.out.println("Food Items Updated");
@@ -417,11 +467,11 @@ public class Main {
                                 System.out.println("Selected Food Items");
                                 System.out.println("Food Item  |  Quantity  |  Price");
                                 for (String foodItemName: createdOrder.getOrderedFoodItems()){
-                                    FoodItem foodItem = foodItemManager.getFoodItem(foodItemName);
+                                    FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                                     System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
                                 }
                             }
-                            case 2 -> {
+                            case 2 -> {// TODO
                                 System.out.print("Enter New Delivery Location: ");
                                 String newDeliveryLocation = scanner.nextLine();
                                 placeOrderManager.editDeliveryLocation(createdOrder, newDeliveryLocation);
@@ -460,7 +510,7 @@ public class Main {
                         System.out.println("Selected Food Items");
                         System.out.println("Food Item  |  Quantity  |  Price");
                         for (String foodItemName: createdOrder.getOrderedFoodItems()){
-                            FoodItem foodItem = foodItemManager.getFoodItem(foodItemName);
+                            FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                             System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
                         }
                     }
@@ -476,7 +526,7 @@ public class Main {
                             System.out.println("Ordered Food Items");
                             System.out.println("Food Item  |  Quantity  |  Price");
                             for (String foodItemName: placeOrderManager.getOrder(confirmedOrder.getId()).getOrderedFoodItems()){
-                                FoodItem foodItem = foodItemManager.getFoodItem(foodItemName);
+                                FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                                 System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
                             }
 
@@ -596,26 +646,26 @@ public class Main {
                 }
                 case 24 -> {
                     System.out.println("Delivery Staff : Deliver Order");
-                    List<Order> receivedOrders = orderManager.getActiveOrders();
-                    if(!Objects.isNull(receivedOrders)){
+                    List<Order> activeOrders = orderManager.getActiveOrders();
+                    if(!Objects.isNull(activeOrders)){
                         System.out.println("""
                                 Active Orders!
                                 _id | customer_name | delivery_location | delivery_date_time  | total_cost |  order_status  |  created
                                 """);
-                        for(Order order: receivedOrders){
+                        for(Order order: activeOrders){
                             System.out.println(order);
                         }
                     } else {
-                        System.out.println("Don't have any Received Orders");
+                        System.out.println("Don't have any Active Orders");
                     }
-                    System.out.print("Select the Order to Deliver(Order id: ");
+                    System.out.print("Select the Order to Deliver(Order id): ");
                     int orderId = scanner.nextInt();
-                    boolean result = orderManager.prepareOrder(orderId);
+                    boolean result = deliveryManger.deliverOrder(orderId);
                     System.out.println("""
-                            Order Prepared!
+                            Order Delivered!
                             _id | customer_name | delivery_location | delivery_date_time  | total_cost |  order_status  |  created
                             """);
-                    orderManager.getActiveOrders().stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
+                    orderManager.getCompletedOrders().stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
                 }
             }
         } while (isApplicationRunning);
@@ -690,5 +740,20 @@ public class Main {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
         return  localDateTime.format(formatter);
+    }
+
+    private static String capitalizeFirstLetter(String input) {
+        StringBuilder result = new StringBuilder();
+        String[] words = input.split("\\s");
+        for (String word : words) {
+            if (!word.isEmpty()) {
+                result.append(Character.toUpperCase(word.charAt(0)))
+                        .append(word.substring(1)).append(" ");
+            }
+        }
+        if (!result.isEmpty()) {
+            result.setLength(result.length() - 1);
+        }
+        return result.toString();
     }
 }
