@@ -7,89 +7,88 @@ import net.breezeware.exception.CustomException;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class FoodMenuDataStore {
-    public static final String DB_NAME = "cos";
-    public static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/" + DB_NAME;
-    public static final String DB_USER = "cos_usr";
-    public static final String DB_PASSWORD= "P@ssw0rd";
-    public static final String TABLE_FOOD_MENU = "food_menu";
-    public static final String COLUMN_MENU_ID = "_id";
-    public static final String COLUMN_MENU_NAME = "name";
-    public static final String COLUMN_MENU_AVAILABLE_DAY = "available_day";
-    public static final String COLUMN_MENU_CREATED = "created";
-    public static final String COLUMN_MENU_MODIFIED = "modified";
+    private static final String DB_NAME = "cos";
+    private static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/" + DB_NAME;
+    private static final String DB_USER = "cos_usr";
+    private static final String DB_PASSWORD= "P@ssw0rd";
+    private static final String TABLE_FOOD_MENU = "food_menu";
+    private static final String COLUMN_MENU_ID = "_id";
+    private static final String COLUMN_MENU_NAME = "name";
+    private static final String COLUMN_MENU_AVAILABLE_DAY = "available_day";
+    private static final String COLUMN_MENU_CREATED = "created";
+    private static final String COLUMN_MENU_MODIFIED = "modified";
 
-    public static final String TABLE_FOOD_MENU_ITEMS = "food_menu_items";
-    public static final String COLUMN_FOOD_MENU_ID = "food_menu_id";
-    public static final String COLUMN_FOOD_ITEM_ID = "food_item_id";
+    private static final String TABLE_FOOD_MENU_ITEMS = "food_menu_items";
+    private static final String COLUMN_FOOD_MENU_ID = "food_menu_id";
+    private static final String COLUMN_FOOD_ITEM_ID = "food_item_id";
 
-    public static final String TABLE_FOOD_ITEMS = "food_items";
-    public static final String COLUMN_FOOD_ID = "_id";
-    public static final String COLUMN_FOOD_ITEM_NAME = "name";
+    private static final String TABLE_FOOD_ITEMS = "food_items";
+    private static final String COLUMN_FOOD_ID = "_id";
+    private static final String COLUMN_FOOD_ITEM_NAME = "name";
 
 
-    public static final String INSERT_FOOD_MENU = "INSERT INTO " + TABLE_FOOD_MENU +
+    private static final String INSERT_FOOD_MENU = "INSERT INTO " + TABLE_FOOD_MENU +
             "(" + COLUMN_MENU_NAME + "," + COLUMN_MENU_AVAILABLE_DAY + "," + COLUMN_MENU_CREATED + "," +
             COLUMN_MENU_MODIFIED + ") VALUES(?, ?, ?, ?)";
-    public static final String UPDATE_FOOD_MENU_NAME = "UPDATE " + TABLE_FOOD_MENU + " SET " + COLUMN_MENU_NAME + " = ? WHERE " + COLUMN_MENU_NAME + " = ?" ;
-    public static final String UPDATE_FOOD_MENU_AVAILABLE_DAY = "UPDATE " + TABLE_FOOD_MENU + " SET " + COLUMN_MENU_AVAILABLE_DAY + " = ? WHERE " + COLUMN_MENU_NAME + " = ?" ;
-    public static final String QUERY_FOOD_MENU = "SELECT * FROM " + TABLE_FOOD_MENU + " WHERE " + COLUMN_MENU_NAME + " = ?";
-    public static final String QUERY_ALL_FOOD_MENU = "SELECT * FROM " + TABLE_FOOD_MENU;
-    public static final String REMOVE_FOOD_MENU = "DELETE FROM " + TABLE_FOOD_MENU + " WHERE " + COLUMN_MENU_NAME + " = ?";
+    private static final String UPDATE_FOOD_MENU_NAME = "UPDATE " + TABLE_FOOD_MENU + " SET " + COLUMN_MENU_NAME + " = ? WHERE " + COLUMN_MENU_NAME + " = ?" ;
+    private static final String UPDATE_FOOD_MENU_AVAILABLE_DAY = "UPDATE " + TABLE_FOOD_MENU + " SET " + COLUMN_MENU_AVAILABLE_DAY + " = ? WHERE " + COLUMN_MENU_NAME + " = ?" ;
+    private static final String QUERY_FOOD_MENU = "SELECT * FROM " + TABLE_FOOD_MENU + " WHERE " + COLUMN_MENU_NAME + " = ?";
+    private static final String REMOVE_FOOD_MENU = "DELETE FROM " + TABLE_FOOD_MENU + " WHERE " + COLUMN_MENU_NAME + " = ?";
 
 
-    public static final String QUERY_FOOD_MENU_ITEMS = "SELECT " + COLUMN_FOOD_ITEM_NAME + " FROM " + TABLE_FOOD_ITEMS +
+    private static final String QUERY_FOOD_MENU_ITEMS = "SELECT " + COLUMN_FOOD_ITEM_NAME + " FROM " + TABLE_FOOD_ITEMS +
             " INNER JOIN " + TABLE_FOOD_MENU_ITEMS + " ON " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_ITEM_ID  + "="
             +  TABLE_FOOD_ITEMS + "." + COLUMN_FOOD_ID + " WHERE " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_MENU_ID + "=?";
-    public static final String INERT_FOOD_ITEM_TO_MENU = "INSERT INTO " + TABLE_FOOD_MENU_ITEMS + "(" + COLUMN_FOOD_MENU_ID
+    private static final String INERT_FOOD_ITEM_TO_MENU = "INSERT INTO " + TABLE_FOOD_MENU_ITEMS + "(" + COLUMN_FOOD_MENU_ID
             + "," + COLUMN_FOOD_ITEM_ID + ") VALUES( ?, ?)";
-    public static final String REMOVE_FOOD_ITEM_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS + " WHERE " + COLUMN_FOOD_MENU_ID + " = ? AND " + COLUMN_FOOD_ITEM_ID + " = ?";
-    public static final String REMOVE_ALL_FOOD_ITEMS_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS + " WHERE " + COLUMN_FOOD_MENU_ID + " = ?";
-
+    private static final String REMOVE_FOOD_ITEM_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS + " WHERE " + COLUMN_FOOD_MENU_ID + " = ? AND " + COLUMN_FOOD_ITEM_ID + " = ?";
+    private static final String REMOVE_ALL_FOOD_ITEMS_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS + " WHERE " + COLUMN_FOOD_MENU_ID + " = ?";
+    public static final String UPDATE_FOOD_MENU_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_MENU + " SET " + COLUMN_MENU_MODIFIED + " = ? WHERE " + COLUMN_MENU_NAME + " = ?" ;
+    private static final int ORDER_BY_ASC = 1;
 
     private Connection connection;
     private final FoodItemDataStore foodItemDataStore = new FoodItemDataStore();
 
-    public void openConnection(){
+    public void openConnection() throws CustomException {
         try {
             connection = DriverManager.getConnection(CONNECTION_STRING, DB_USER, DB_PASSWORD);
         } catch (SQLException e) {
-            System.out.println("Couldn't connect to database: " + e.getMessage());
+            throw new CustomException("Couldn't Connect to Database. "+ e.getMessage());
         }
     }
 
-    public void closeConnection(){
+    public void closeConnection() throws CustomException {
         try {
             if (!Objects.isNull(connection)){
                 connection.close();
             }
         } catch (SQLException e) {
-            System.out.println("Couldn't close connection: " + e.getMessage());
+            throw new CustomException("Couldn't Close the Connection. "+ e.getMessage());
         }
     }
 
-    public FoodMenu insertFoodMenu(String name, String availableDay, LocalDateTime created, LocalDateTime modified){
+    public FoodMenu insertFoodMenu(String name, String availableDay, LocalDateTime created,
+                                   LocalDateTime modified) throws CustomException {
         try (PreparedStatement insertFoodMenu = connection.prepareStatement(INSERT_FOOD_MENU)) {
             insertFoodMenu.setString(1, name);
             insertFoodMenu.setString(2, availableDay);
             insertFoodMenu.setTimestamp(3, Timestamp.valueOf(created));
             insertFoodMenu.setTimestamp(4, Timestamp.valueOf(modified));
-            int rowsAffected = insertFoodMenu.executeUpdate();
-            if(rowsAffected > 0){
-                return queryFoodMenu(name);
-            }
-            return null;
+            insertFoodMenu.executeUpdate();
+            return queryFoodMenu(name);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new CustomException("Couldn't Create Food Menu. "+ e.getMessage());
         }
     }
 
-    public FoodMenu queryFoodMenu(String foodMenuName){
+    public FoodMenu queryFoodMenu(String foodMenuName) throws CustomException {
         try (PreparedStatement queryFoodItem = connection.prepareStatement(QUERY_FOOD_MENU)){
             queryFoodItem.setString(1,foodMenuName);
             ResultSet result = queryFoodItem.executeQuery();
@@ -102,17 +101,29 @@ public class FoodMenuDataStore {
                 foodMenu.setModified(result.getTimestamp(COLUMN_MENU_MODIFIED).toInstant());
                 result.close();
                 return foodMenu;
-            } else {
+            }
+            else {
                 result.close();
-                return null;
+                throw new CustomException("Food Menu not found for name: " + foodMenuName);
             }
         } catch (SQLException | RuntimeException e) {
-            throw new RuntimeException(e);
+            throw new CustomException("Couldn't Query Food Menu. " + e.getMessage());
         }
     }
 
-    public List<FoodMenu> queryAllFoodMenu(){
-        try (PreparedStatement queryAllFoodMenus = connection.prepareStatement(QUERY_ALL_FOOD_MENU)){
+    public List<FoodMenu> queryAllFoodMenu(boolean isOrderBy, int sortOrder, String columnName) throws CustomException {
+        StringBuilder getFoodMenusQuery = new StringBuilder("SELECT * FROM ");
+        getFoodMenusQuery.append(TABLE_FOOD_MENU);
+        if (isOrderBy) {
+            getFoodMenusQuery.append(" ORDER BY ");
+            getFoodMenusQuery.append(columnName);
+            if(sortOrder == ORDER_BY_ASC){
+                getFoodMenusQuery.append(" ASC ");
+            } else {
+                getFoodMenusQuery.append(" DESC ");
+            }
+        }
+        try (PreparedStatement queryAllFoodMenus = connection.prepareStatement(getFoodMenusQuery.toString())){
             ResultSet result = queryAllFoodMenus.executeQuery();
             List<FoodMenu> foodMenuList = new ArrayList<>();
             while(result.next()){
@@ -120,101 +131,93 @@ public class FoodMenuDataStore {
             }
             result.close();
             return foodMenuList;
-        } catch (SQLException | RuntimeException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Query Food Menus. " + e.getMessage());
         }
     }
 
-    public List<FoodItem> getFoodMenuItems(int foodMenuId){
+    public List<FoodItem> getFoodMenuItems(int foodMenuId) throws CustomException {
         try (PreparedStatement queryFoodMenuItems = connection.prepareStatement(QUERY_FOOD_MENU_ITEMS)){
             queryFoodMenuItems.setInt(1, foodMenuId);
             ResultSet result = queryFoodMenuItems.executeQuery();
-
             List<FoodItem> foodMenuItems = new ArrayList<>();
             foodItemDataStore.openConnection();
             while (result.next()){
                 String foodItemName = result.getString(COLUMN_FOOD_ITEM_NAME);
-                try{
-                    foodMenuItems.add(foodItemDataStore.queryFoodItem(foodItemName));
-                } catch (CustomException e){
-                    throw new CustomException(e.getMessage());
-                }
+                foodMenuItems.add(foodItemDataStore.queryFoodItem(foodItemName));
             }
             foodItemDataStore.closeConnection();
             result.close();
             return foodMenuItems;
         } catch (SQLException | RuntimeException | CustomException e){
-            throw new RuntimeException(e);
+            throw new CustomException("Couldn't Query Food Menu Items. " + e.getMessage());
         }
     }
 
-    public boolean addFoodItemsToMenu(int foodMenuId, int foodItemId){
+    public boolean addFoodItemsToMenu(int foodMenuId, int foodItemId) throws CustomException {
         try(PreparedStatement addFoodItemsToMenu = connection.prepareStatement(INERT_FOOD_ITEM_TO_MENU)){
             addFoodItemsToMenu.setInt(1,foodMenuId);
             addFoodItemsToMenu.setInt(2,foodItemId);
             int rowsAffected = addFoodItemsToMenu.executeUpdate();
             return rowsAffected > 0;
         } catch(SQLException e){
-            throw new RuntimeException(e.getMessage());
+            throw new CustomException("Couldn't Add Food Item to Menu. " + e.getMessage());
         }
     }
 
-    public boolean removeFoodItemFromMenu(int foodMenuId, int foodItemId){
+    public FoodMenu updateFoodMenuName(String newFoodMenuName, String foodMenuName) throws CustomException {
+        try(PreparedStatement updateFoodMenuName = connection.prepareStatement(UPDATE_FOOD_MENU_NAME)){
+            updateFoodMenuName.setString(1,newFoodMenuName);
+            updateFoodMenuName.setString(2,foodMenuName);
+            updateFoodMenuName.executeUpdate();
+            updateFoodMenuModifiedDate(newFoodMenuName);
+            return queryFoodMenu(newFoodMenuName);
+        } catch(SQLException e){
+            throw new CustomException("Couldn't Update Food Menu Name. " + e.getMessage());
+        }
+    }
+
+    public FoodMenu updateFoodMenuAvailableDay(String availableDays, String foodMenuName) throws CustomException {
+        try(PreparedStatement updateFoodMenuAvailableDay = connection.prepareStatement(UPDATE_FOOD_MENU_AVAILABLE_DAY)){
+            updateFoodMenuAvailableDay.setString(1,availableDays);
+            updateFoodMenuAvailableDay.setString(2,foodMenuName);
+            updateFoodMenuAvailableDay.executeUpdate();
+            updateFoodMenuModifiedDate(foodMenuName);
+            return queryFoodMenu(foodMenuName);
+        } catch(SQLException e){
+            throw new CustomException("Couldn't Update Food Menu Available Days. " + e.getMessage());
+        }
+    }
+
+    public boolean deleteFoodItemFromMenu(int foodMenuId, int foodItemId) throws CustomException {
         try(PreparedStatement removeFoodItemsFromMenu = connection.prepareStatement(REMOVE_FOOD_ITEM_FROM_MENU)){
             removeFoodItemsFromMenu.setInt(1,foodMenuId);
             removeFoodItemsFromMenu.setInt(2,foodItemId);
             int rowsAffected = removeFoodItemsFromMenu.executeUpdate();
             return rowsAffected > 0;
         } catch(SQLException e){
-            throw new RuntimeException(e.getMessage());
+            throw new CustomException("Couldn't Remove Food Menu Item. " + e.getMessage());
         }
     }
 
-    public boolean removeAllFoodItemsFromMenu(int foodMenuId){
+    public boolean deleteAllFoodItemsFromMenu(int foodMenuId) throws CustomException {
         try(PreparedStatement removeAllFoodItemsFromMenu = connection.prepareStatement(REMOVE_ALL_FOOD_ITEMS_FROM_MENU)) {
             removeAllFoodItemsFromMenu.setInt(1, foodMenuId);
             return removeAllFoodItemsFromMenu.executeUpdate() > 0;
         } catch (SQLException e){
-            throw new RuntimeException(e);
+            throw new CustomException("Couldn't Remove Food Menu Items. " + e.getMessage());
         }
     }
-    public boolean removeFoodMenu(String foodMenuName){
+    public boolean deleteFoodMenu(String foodMenuName) throws CustomException {
         try(PreparedStatement removeFoodMenu = connection.prepareStatement(REMOVE_FOOD_MENU)){
             removeFoodMenu.setString(1, foodMenuName);
             int rowsAffected = removeFoodMenu.executeUpdate();
             return rowsAffected > 0;
         } catch(SQLException e){
-            throw new RuntimeException(e);
+            throw new CustomException("Couldn't Remove Food Menu. " + e.getMessage());
         }
     }
 
-    public FoodMenu updateFoodMenuName(String newFoodMenuName, String foodMenuName){
-        try(PreparedStatement updateFoodMenuName = connection.prepareStatement(UPDATE_FOOD_MENU_NAME)){
-            updateFoodMenuName.setString(1,newFoodMenuName);
-            updateFoodMenuName.setString(2,foodMenuName);
-            int rowsAffected = updateFoodMenuName.executeUpdate();
-            if (rowsAffected > 0){
-                return queryFoodMenu(newFoodMenuName);
-            }
-            return null;
-        } catch(SQLException e){
-            throw new RuntimeException(e);
-        }
-    }
-
-    public FoodMenu updateFoodMenuAvailableDay(String availableDays, String foodMenuName){
-        try(PreparedStatement updateFoodMenuAvailableDay = connection.prepareStatement(UPDATE_FOOD_MENU_AVAILABLE_DAY)){
-            updateFoodMenuAvailableDay.setString(1,availableDays);
-            updateFoodMenuAvailableDay.setString(2,foodMenuName);
-            int rowsAffected = updateFoodMenuAvailableDay.executeUpdate();
-            if (rowsAffected > 0){
-                return queryFoodMenu(foodMenuName);
-            }
-            return null;
-        } catch(SQLException e){
-            throw new RuntimeException(e);
-        }
-    }
 
     private List<AvailableDay> convertStringTOList(String availableDay){
         List<String> availableDays = Arrays.asList(availableDay.split(","));
@@ -224,4 +227,17 @@ public class FoodMenuDataStore {
                 .toList();
     }
 
+    private void updateFoodMenuModifiedDate(String foodMenuName) throws CustomException {
+        try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_MENU_MODIFIED_DATE,
+                Statement.RETURN_GENERATED_KEYS)){
+            LocalDateTime modifiedTime = LocalDateTime.now();
+            DateTimeFormatter dateTimePattern = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
+            modifiedTime.format(dateTimePattern);
+            updateFoodItem.setTimestamp(1, Timestamp.valueOf(modifiedTime));
+            updateFoodItem.setString(2, foodMenuName);
+            updateFoodItem.executeUpdate();
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Modify Food Menu Modified Date. " + e.getMessage());
+        }
+    }
 }

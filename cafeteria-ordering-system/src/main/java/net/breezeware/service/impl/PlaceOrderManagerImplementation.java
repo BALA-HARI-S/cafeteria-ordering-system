@@ -18,22 +18,6 @@ public class PlaceOrderManagerImplementation implements PlaceOrderManager {
     private final FoodItemManager foodItemManager = new FoodItemManagerImplementation();
     private final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation();
     private final OrderDataStore orderDataStore = new OrderDataStore();
-    @Override
-    public List<FoodMenu> viewFoodMenu() {
-        List<FoodMenu> foodMenuList = foodMenuManager.getAllFoodMenus();
-        List<FoodMenu> foodMenuOfTheDay = new ArrayList<>();
-        for(FoodMenu menu: foodMenuList){
-            LocalDate currentDate = LocalDate.now();
-            DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
-            String today = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.ENGLISH);
-            for(AvailableDay day: menu.getAvailableDay()){
-                if(day.name().equals(today.toUpperCase())){
-                    foodMenuOfTheDay.add(menu);
-                }
-            }
-        }
-        return foodMenuOfTheDay;
-    }
 
     @Override
     public Order createOrder(String customerId, List<String> orderedItems, String deliveryLocation,

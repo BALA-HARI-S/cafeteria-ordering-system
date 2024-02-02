@@ -10,7 +10,6 @@ import java.time.Instant;
 import java.util.List;
 
 public interface PlaceOrderManager {
-    List<FoodMenu> viewFoodMenu();
     Order createOrder(String customerId, List<String> orderedItems, String deliveryLocation, String deliveryDateTime,
                       double totalCost);
     Order getOrder(int orderId);

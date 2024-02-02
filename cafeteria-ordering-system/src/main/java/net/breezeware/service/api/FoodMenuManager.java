@@ -3,18 +3,20 @@ package net.breezeware.service.api;
 import net.breezeware.entity.AvailableDay;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
+import net.breezeware.exception.CustomException;
 
 import java.util.List;
 
 public interface FoodMenuManager {
-    FoodMenu createFoodMenu(String name, List<AvailableDay> availableDay);
-    FoodMenu getFoodMenu(String foodMenuName);
-    List<FoodItem> getFoodMenuItems(int foodMenuId);
-    List<FoodMenu> getAllFoodMenus();
-    boolean addFoodItemsToMenu(int foodMenuId, int foodItemId);
-    boolean removeFoodItemFromMenu(int foodMenuId, int foodItemId);
-    boolean removeAllFoodItemsFromMenu(int foodMenuId);
-    FoodMenu editFoodMenuName(String newName, String foodMenuName);
-    FoodMenu editFoodMenuAvailableDay(List<AvailableDay> availableDays, String foodMenuName);
-    boolean removeFoodMenu(String foodMenuName);
+    FoodMenu createFoodMenu(String name, List<AvailableDay> availableDay) throws CustomException;
+    List<FoodMenu> retrieveFoodMenuOfTheDay() throws CustomException;
+    FoodMenu retrieveFoodMenu(String foodMenuName) throws CustomException;
+    List<FoodItem> retrieveFoodMenuItems(int foodMenuId) throws CustomException;
+    List<FoodMenu> retrieveAllFoodMenus(boolean isOrderBy, int sortOrder, String columnName) throws CustomException;
+    boolean addFoodItemsToMenu(int foodMenuId, int foodItemId) throws CustomException;
+    boolean deleteFoodItemFromMenu(int foodMenuId, int foodItemId) throws CustomException;
+    boolean deleteAllFoodItemsFromMenu(int foodMenuId) throws CustomException;
+    FoodMenu updateFoodMenuName(String newName, String foodMenuName) throws CustomException;
+    FoodMenu updateFoodMenuAvailableDay(List<AvailableDay> availableDays, String foodMenuName) throws CustomException;
+    boolean deleteFoodMenu(String foodMenuName) throws CustomException;
 }
