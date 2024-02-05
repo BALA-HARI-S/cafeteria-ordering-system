@@ -8,8 +8,6 @@ import net.breezeware.exception.CustomException;
 import net.breezeware.service.api.*;
 import net.breezeware.service.impl.*;
 
-import javax.swing.text.View;
-import java.awt.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -30,9 +28,6 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws CustomException {
-
-        System.out.println("Today's Menu");
-        foodMenuManager.
 
         boolean isApplicationRunning = true;
 
@@ -89,7 +84,7 @@ public class Main {
                     boolean isOrderBy = false;
                     boolean isAscending = false;
                     String columnName = "";
-                    if(orderBy.charAt(0) == 'y'){
+                    if(orderBy.toLowerCase().charAt(0) == 'y'){
                         isOrderBy = true;
                         System.out.print("""
                                 Order by :
@@ -209,85 +204,186 @@ public class Main {
                     }
                 }
                 case 6 -> {
+                    try{
+                        boolean isUpdatingFoodItemQuantity = true;
+                        while(isUpdatingFoodItemQuantity){
+                            System.out.println("Today's Menu");
+                            List<FoodMenu> todayFoodMenu = foodMenuManager.retrieveFoodMenuOfTheDay();
+
+                            List<FoodItem> todayMenuFoodItems = new ArrayList<>();
+                            for(FoodMenu menu: todayFoodMenu){
+                                System.out.println("Food Menu : " + menu.getName());
+                                todayMenuFoodItems = foodMenuManager.retrieveFoodMenuItems(menu.getId());
+                                System.out.println("_id    |   name    |    Quantity    |   price");
+                                todayMenuFoodItems.forEach(foodItem -> System.out.printf("%d    |   %s  |   %d  |   %.2f%n",
+                                        foodItem.getId(), foodItem.getName(), foodItem.getQuantity(), foodItem.getPrice()));
+                                scanner.nextLine();
+                            }
+                            System.out.print("Do you want to Update Today Food Menu's Food Item Quantity?(Yes/No): ");
+                            String updateFoodItemQuantity = scanner.nextLine();
+                            if(updateFoodItemQuantity.toLowerCase().charAt(0) == 'y'){
+                                System.out.print("Choose Food Item from the above Menu to update it's quantity(Food Item Name): ");
+                                String foodItemNameFromMenu = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                boolean isValidFoodItem = false;
+                                for(FoodItem item: todayMenuFoodItems){
+                                    if (foodItemNameFromMenu.equals(item.getName())) {
+                                        isValidFoodItem = true;
+                                        break;
+                                    }
+                                }
+                                if(isValidFoodItem){
+                                    System.out.println("Changing Quantity of " + foodItemNameFromMenu);
+                                    System.out.print("Enter Quantity for this Food Item '" + foodItemNameFromMenu +"' : ");
+                                    int foodItemQuantity = scanner.nextInt();
+                                    foodItemManager.updateFoodItemQuantity(foodItemQuantity, foodItemNameFromMenu);
+                                    System.out.println("Food Item Quantity Updated!");
+                                } else {
+                                    System.out.println("This Food Item is not in this Food Menu");
+                                }
+                            } else {
+                                isUpdatingFoodItemQuantity = false;
+                            }
+                        }
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 7 -> {
                     System.out.println("Cafeteria Admin Operation: Create Food Menu");
                     scanner.nextLine();
                     System.out.print("Food Menu Name: ");
                     String foodMenuName = scanner.nextLine();
                     System.out.print("Enter Food Available Day(Day1,Day2,..): ");
                     String foodAvailableDays = scanner.nextLine().toUpperCase();
-                    FoodMenu foodMenu = foodMenuManager.createFoodMenu(foodMenuName, convertStringTOList(foodAvailableDays));
-                    System.out.println(foodMenuManager.getFoodMenu(foodMenu.getName()));
-                }
-                case 7 -> {
-                    System.out.println("Cafeteria Admin Operation: View Food Menu");
-                    scanner.nextLine();
-                    System.out.print("Food Menu Name: ");
-                    String foodMenuName = scanner.nextLine();
-                    FoodMenu foodMenu = foodMenuManager.getFoodMenu(foodMenuName);
-                    System.out.println("_id  |   name    |   available_day   |    created    |    modified");
-                    System.out.println(foodMenu+"\n");
-                    System.out.println("""
-                            Menu - Food Items:
-                            name   |   quantity   |   price""");
-                    for (FoodItem item: foodMenuManager.getFoodMenuItems(foodMenu.getId())){
-                        System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
+                    try{
+                        System.out.println("""
+                                Food Menu Already Exist
+                                _id | name | available_days | created | modified
+                                """+ foodMenuManager.retrieveFoodMenu(foodMenuName));
+                    } catch (CustomException e){
+                        FoodMenu newFoodMenu = foodMenuManager.createFoodMenu(foodMenuName, convertStringTOList(foodAvailableDays));
+                        System.out.println("""
+                                Food Item Created
+                                _id | name | available_days | created | modified
+                                """+newFoodMenu);
                     }
                 }
                 case 8 -> {
-                    System.out.println("Cafeteria Admin Operation: View All Food Menu");
-                    List<FoodMenu> foodMenuList = foodMenuManager.getAllFoodMenus();
-                    if(Objects.isNull(foodMenuList)){
-                        System.out.println("Empty Food Menu List");
-                    } else {
-                        System.out.println("_id  |   name    |   available_day   |    created    |    modified");
-                        foodMenuList.forEach(System.out::println);
+                    System.out.println("Cafeteria Admin Operation: View Food Menu");
+                    scanner.nextLine();
+                    System.out.print("Food Menu Name: ");
+                    String foodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                    try{
+                        FoodMenu foodMenu = foodMenuManager.retrieveFoodMenu(foodMenuName);
+                        System.out.println("""
+                                _id  |   name    |   available_day   |    created    |    modified
+                                """+foodMenu);
+                        System.out.println("""
+                            Menu - Food Items:
+                            name   |   quantity   |   price""");
+                        for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(foodMenu.getId())){
+                            System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
+                        }
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
                     }
                 }
-                case 9 ->{
-                    System.out.println("Cafeteria Admin Operation: Add Food Item to Food Menu");
+                case 9 -> {
+                    System.out.println("Cafeteria Admin Operation: View All Food Menus");
                     scanner.nextLine();
-                    System.out.print("Enter Food Menu Name to Add Food Item: ");
-                    String foodMenuName = scanner.nextLine();
-                    FoodMenu foodMenu = foodMenuManager.getFoodMenu(foodMenuName);
-                    if(!Objects.isNull(foodMenu)){
+                    System.out.print("Do you want arrange food-menus in an order?(Yes/No): ");
+                    String orderBy = scanner.nextLine();
+                    boolean isOrderBy = false;
+                    boolean isAscending = false;
+                    String columnName = "";
+                    if(orderBy.toLowerCase().charAt(0) == 'y'){
+                        isOrderBy = true;
+                        System.out.print("""
+                                Order by :
+                                1) Id
+                                2) Name
+                                3) Created Date
+                                4) Last Modified Date
+                                Option :""");
+                        int column = scanner.nextInt();
+                        switch (column){
+                            case 1 -> columnName = "_id";
+                            case 2 -> columnName = "name";
+                            case 3 -> columnName = "created";
+                            case 4 -> columnName = "modified";
+                        }
+                        System.out.print("""
+                                1) Ascending Order
+                                2) Descending Order
+                                Option :""");
+                        int orderType = scanner.nextInt();
+                        if(orderType == 1){
+                            isAscending = true;
+                        }
+                    }
+                    try{
+                        List<FoodMenu> foodMenuList = foodMenuManager.retrieveAllFoodMenus(isOrderBy, isAscending? 1: 2, columnName);
+                        if(Objects.isNull(foodMenuList)){
+                            System.out.println("Empty Food Menu List");
+                        } else {
+                            System.out.println("_id  |   name    |   available_day   |    created    |    modified");
+                            foodMenuList.forEach(System.out::println);
+                        }
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 10 ->{
+                    System.out.println("Cafeteria Admin Operation: Add Food Item to Food Menu");
+                    try{
+                        System.out.println("_id  |   name    |   available_day   |    created    |    modified");
+                        foodMenuManager.retrieveAllFoodMenus(true,1, "_id").forEach(System.out::println);
+                        scanner.nextLine();
+
+                        System.out.print("Enter Food Menu Name to Add Food Item: ");
+                        String foodMenuName = scanner.nextLine();
+                        FoodMenu foodMenu = foodMenuManager.retrieveFoodMenu(foodMenuName);
                         int foodMenuId = foodMenu.getId();
+
+                        foodItemManager.retrieveAllFoodItems(true,1,"_id").forEach(System.out::println);
+
                         System.out.print("Enter Food Item Name to Add: ");
                         String foodItemName = scanner.nextLine();
                         FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
-                        if (!Objects.isNull(foodItem)){
-                            int foodItemId = foodItem.getId();
-                            boolean result = foodMenuManager.addFoodItemsToMenu(foodMenuId, foodItemId);
-                            System.out.println(result? "Food Item Added to Menu!\n" : "Couldn't Add Food Item to Menu\n");
-                        } else {
-                            System.out.println("There is no such Food Item, Enter correct Food Item Name!\n");
-                        }
-                    } else {
-                        System.out.println("There is no such Food Menu, Enter correct Menu Name!\n");
-                    }
-                }
-                case 10 -> {
-                    System.out.println("Cafeteria Admin Operation: Delete Food Item From Food Menu");
-                    scanner.nextLine();
-                    System.out.print("Enter Food Menu Name to Delete Food Item: ");
-                    String foodMenuName = scanner.nextLine();
-                    FoodMenu foodMenu = foodMenuManager.getFoodMenu(foodMenuName);
-                    if(!Objects.isNull(foodMenu)){
-                        int foodMenuId = foodMenu.getId();
-                        System.out.print("Enter Food Item Name to Delete: ");
-                        String foodItemName = scanner.nextLine();
-                        FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
-                        if (!Objects.isNull(foodItem)){
-                            int foodItemId = foodItem.getId();
-                            boolean result = foodMenuManager.removeFoodItemFromMenu(foodMenuId,foodItemId);
-                            System.out.println(result? "Food Item Deleted From Menu!\n" : "Couldn't Delete Food Item from Menu\n");
-                        } else {
-                            System.out.println("There is no such Food Item, Enter correct Food Item Name!\n");
-                        }
-                    } else {
-                        System.out.println("There is no such Food Menu, Enter correct Menu Name!\n");
+                        int foodItemId = foodItem.getId();
+
+                        boolean result = foodMenuManager.addFoodItemsToMenu(foodMenuId, foodItemId);
+                        System.out.println(result? "Food Item Added to Menu!" : "Couldn't Add Food Item to Menu");
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
                     }
                 }
                 case 11 -> {
+                    System.out.println("Cafeteria Admin Operation: Delete Food Item From Food Menu");
+                    try{
+                        System.out.println("_id  |   name    |   available_day   |    created    |    modified");
+                        foodMenuManager.retrieveAllFoodMenus(true,1, "_id").forEach(System.out::println);
+                        scanner.nextLine();
+                        System.out.print("Enter Food Menu Name to Delete Food Item: ");
+                        String foodMenuName = scanner.nextLine();
+                        FoodMenu foodMenu = foodMenuManager.retrieveFoodMenu(foodMenuName);
+                        int foodMenuId = foodMenu.getId();
+
+                        System.out.println("_id | name | quantity | price | created | modified");
+                        foodMenuManager.retrieveFoodMenuItems(foodMenuId).forEach(System.out::println);
+
+                        System.out.print("Enter Food Item Name to Delete: ");
+                        String foodItemName = scanner.nextLine();
+                        FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                        int foodItemId = foodItem.getId();
+
+                        boolean result = foodMenuManager.deleteFoodItemFromMenu(foodMenuId,foodItemId);
+                        System.out.println(result? "Food Item Deleted From Menu!" : "Couldn't Delete Food Item from Menu!");
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
+                    }
+                }
+                case 12 -> {
                     System.out.println("Cafeteria Admin Operation: Edit Food Menu");
                     boolean isUpdatingFoodMenu = true;
                     while (isUpdatingFoodMenu){
@@ -299,87 +395,76 @@ public class Main {
                         int foodMenuEditOption = scanner.nextInt();
                         scanner.nextLine();
                         switch (foodMenuEditOption){
-
                             case 1 -> {
-                                scanner.nextLine();
-                                System.out.print("Which Food Menu Name Do you want to change?: ");
-                                String foodMenuName = scanner.nextLine();
-                                FoodMenu foodMenu = foodMenuManager.getFoodMenu(foodMenuName);
-                                if(!Objects.isNull(foodMenu)){
+                                try{
+                                    System.out.println("_id  |   name    |   available_day   |    created    |    modified");
+                                    foodMenuManager.retrieveAllFoodMenus(true,1, "_id").forEach(System.out::println);
+                                    System.out.print("Enter the Food Menu Name that you want to change: ");
+                                    String foodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                    foodMenuManager.retrieveFoodMenu(foodMenuName);
                                     System.out.print("Enter a New Food Menu Name: ");
-                                    String newFoodMenuName = scanner.nextLine();
-                                    FoodMenu updatedMenu = foodMenuManager.editFoodMenuName(newFoodMenuName, foodMenuName);
-                                    if (!Objects.isNull(updatedMenu)){
-                                        System.out.println("""
+                                    String newFoodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                    FoodMenu updatedMenu = foodMenuManager.updateFoodMenuName(newFoodMenuName, foodMenuName);
+                                    System.out.println("""
                                                 Food Menu Name Updated!
                                                 _id   |   name   |   available_day""");
-                                        System.out.printf("%d   |   %s  |   %s%n",updatedMenu.getId(),updatedMenu.getName(),updatedMenu.getAvailableDay());
-
-
-                                    } else {
-                                        System.out.println("Couldn't Update Food Menu Name");
-                                    }
-                                } else {
-                                    System.out.println("There is no such Food Menu, Enter correct Menu Name!\n");
+                                    System.out.printf("%d   |   %s  |   %s%n",updatedMenu.getId(),updatedMenu.getName(),updatedMenu.getAvailableDay());
+                                } catch (CustomException e){
+                                    System.out.println(e.getMessage());
                                 }
                             }
-
                             case 2 -> {
-                                System.out.print("Which Food Menu Available Days Do you want to change?: ");
-                                String foodMenuName = scanner.nextLine();
-                                FoodMenu foodMenu = foodMenuManager.getFoodMenu(foodMenuName);
-                                if(!Objects.isNull(foodMenu)){
-                                    System.out.print("Enter a New Food Menu Available Days(Day1,Day2,..): ");// TODO : change to mon tue
+                                try{
+                                    System.out.println("Which Food Menu Available Days Do you want to change?");
+                                    System.out.println("_id  |   name    |   available_day   |    created    |    modified");
+                                    foodMenuManager.retrieveAllFoodMenus(true,1, "_id").forEach(System.out::println);
+                                    System.out.print("Enter Food Menu Name: ");
+                                    String foodMenuName = scanner.nextLine();
+                                    foodMenuManager.retrieveFoodMenu(foodMenuName);
+
+                                    System.out.print("Enter a New Food Menu Available Days(Day1,Day2,..): ");
                                     String newFoodMenuAvailableDays = scanner.nextLine();
                                     List<AvailableDay> availableDays = convertStringTOList(newFoodMenuAvailableDays);
-                                    FoodMenu updatedMenu = foodMenuManager.editFoodMenuAvailableDay(availableDays, foodMenuName);
-                                    if (!Objects.isNull(updatedMenu)){
-                                        System.out.println("""
+                                    FoodMenu updatedMenu = foodMenuManager.updateFoodMenuAvailableDay(availableDays, foodMenuName);
+                                    System.out.println("""
                                                 Food Menu Available Day Updated!
                                                 _id   |   name   |   available_day""");
-                                        System.out.printf("%d   |   %s  |   %s%n",updatedMenu.getId(),updatedMenu.getName(),
-                                                getCustomStringRepresentation(updatedMenu.getAvailableDay()));
-                                    } else {
-                                        System.out.println("Couldn't Update Food Menu!");
-                                    }
-                                } else {
-                                    System.out.println("There is no such Food Menu, Enter correct Menu Name!\n");
+                                    System.out.printf("%d   |   %s  |   %s%n",updatedMenu.getId(),updatedMenu.getName(),
+                                            getCustomStringRepresentation(updatedMenu.getAvailableDay()));
+                                } catch (CustomException e){
+                                    System.out.println(e.getMessage());
                                 }
                             }
-
                             case 3 -> isUpdatingFoodMenu = false;
                         }
                     }
                 }
-                case 12 -> {
+                case 13 -> {
                     System.out.println("Cafeteria Admin Operation: Delete Food Menu");
-                    scanner.nextLine();
-                    System.out.print("Enter Food Menu Name to Delete: ");
-                    String foodMenuName = scanner.nextLine();
-                    FoodMenu foodMenu = foodMenuManager.getFoodMenu(foodMenuName);
-                    if(!Objects.isNull(foodMenu)){
-                        if(foodMenuManager.removeAllFoodItemsFromMenu(foodMenu.getId())){
-                            boolean result = foodMenuManager.removeFoodMenu(foodMenu.getName());
-                            System.out.println(result? "Food Menu Deleted!\n" : "Couldn't Delete Food Menu\n");
-                        } else {
-                            System.out.println("couldn't remove food items\n");
-                        }
-                    } else {
-                        System.out.println("There is no such Food Menu, Enter correct Menu Name!\n");
+                    try{
+                        System.out.println("_id  |   name    |   available_day   |    created    |    modified");
+                        foodMenuManager.retrieveAllFoodMenus(true,1, "_id").forEach(System.out::println);
+                        scanner.nextLine();
+                        System.out.print("Enter Food Menu Name to Delete: ");
+                        String foodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                        boolean result = foodMenuManager.deleteFoodMenu(foodMenuName);
+                        System.out.println(result? "Food Menu Deleted!" : "Couldn't Delete Food Menu!");
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
                     }
                 }
-                case 13 -> {
+                case 14 -> {
                     System.out.println("Customer Operation : View Food Menu of the Day");
-                    List<FoodMenu> foodMenuOfTheDay = placeOrderManager.viewFoodMenu();
+                    List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
                     for(FoodMenu menu: foodMenuOfTheDay){
                         System.out.println("Menu : " + menu.getName());
                         System.out.println("Food Item  |  Quantity  |  Price");
-                        for (FoodItem item: foodMenuManager.getFoodMenuItems(menu.getId())){
+                        for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
                             System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
                         }
                     }
                 }
-                case 14 -> {
+                case 15 -> {
                     System.out.println("Customer Operation : Create Order");
                     System.out.print("Provide Order Details \nEnter Your Username: ");
                     scanner.nextLine();
@@ -388,16 +473,16 @@ public class Main {
                     String deliveryLocation = scanner.nextLine();
                     System.out.print("Enter Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
                     String deliveryDateTime = scanner.nextLine();
-                    if (!isDateTimeFormatValid(deliveryDateTime, "dd-MM-yyyy hh-mm-ss a")) {
+                    if (isDateTimeFormatValid(deliveryDateTime)) {
                         System.out.println("Input date-time does not match the pattern.");
                         return;
                     }
                     System.out.println("Select Food Items");
-                    List<FoodMenu> foodMenuOfTheDay = placeOrderManager.viewFoodMenu();
+                    List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
                     for(FoodMenu menu: foodMenuOfTheDay){
                         System.out.println("Menu : " + menu.getName());
                         System.out.println("Food Item  |  Quantity  |  Price");
-                        for (FoodItem item: foodMenuManager.getFoodMenuItems(menu.getId())){
+                        for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
                             System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
                         }
                     }
@@ -414,7 +499,7 @@ public class Main {
                     createdOrder = placeOrderManager.createOrder(customerName,foodItems,deliveryLocation,deliveryDateTime,totalCost);
                     System.out.println(Objects.isNull(createdOrder)? "Something went wrong! Cannot Create Order" : "Order Created!");
                 }
-                case 15 -> {
+                case 16 -> {
                     System.out.println("Customer Operation : View Order");
                     if(Objects.isNull(createdOrder)){
                         System.out.println("Your Order is Empty!");
@@ -430,7 +515,7 @@ public class Main {
                         }
                     }
                 }
-                case 16 -> {
+                case 17 -> {
                     System.out.println("Customer Operation: Edit Order");
                     boolean isEditingOrder = true;
                     while (isEditingOrder){
@@ -444,11 +529,11 @@ public class Main {
                         switch (orderEditOptions){
                             case 1 -> {
                                 System.out.println("Select New Food Items");
-                                List<FoodMenu> foodMenuOfTheDay = placeOrderManager.viewFoodMenu();
+                                List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
                                 for(FoodMenu menu: foodMenuOfTheDay){
                                     System.out.println("Menu : " + menu.getName());
                                     System.out.println("Food Item  |  Quantity  |  Price");
-                                    for (FoodItem item: foodMenuManager.getFoodMenuItems(menu.getId())){
+                                    for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
                                         System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
                                     }
                                 }
@@ -483,7 +568,7 @@ public class Main {
                             case 3 -> {
                                 System.out.print("Enter New Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
                                 String newDeliveryDateTime = scanner.nextLine();
-                                if (!isDateTimeFormatValid(newDeliveryDateTime, "dd-MM-yyyy hh-mm-ss a")) {
+                                if (isDateTimeFormatValid(newDeliveryDateTime)) {
                                     System.out.println("Input date-time does not match the pattern.");
                                     return;
                                 }
@@ -499,7 +584,7 @@ public class Main {
                         }
                     }
                 }
-                case 17 -> {
+                case 18 -> {
                     System.out.println("Customer Operation : Confirm Order");
                     if(Objects.isNull(createdOrder)){
                         System.out.println("Your Order is Empty!");
@@ -537,7 +622,7 @@ public class Main {
                         System.out.println("Aborting Order Confirmation!");
                     }
                 }
-                case 18 -> {
+                case 19 -> {
                     System.out.println("Customer Operation : Cancel the Order");
                     if(Objects.isNull(confirmedOrder)){
                         System.out.print("Order is Empty!\n Want to Cancel Order by it's Id(Yes/No): ");
@@ -561,7 +646,7 @@ public class Main {
                                 +confirmedOrder);
                     }
                 }
-                case 19 -> {
+                case 20 -> {
                     System.out.println("Cafeteria staff : List Active Orders");
                     System.out.println("""
                             Active Orders!
@@ -576,7 +661,7 @@ public class Main {
                         System.out.println("Don't have any Active Orders");
                     }
                 }
-                case 20 -> {
+                case 21 -> {
                     System.out.println("Cafeteria staff : List Received Orders");
                     List<Order> receivedOrders = orderManager.getReceivedOrders();
                     if(!Objects.isNull(receivedOrders)){
@@ -591,7 +676,7 @@ public class Main {
                         System.out.println("Don't have any Received Orders");
                     }
                 }
-                case 21 -> {
+                case 22 -> {
                     System.out.println("Cafeteria staff : List Cancelled Orders");
                     List<Order> cancelledOrders = orderManager.getCancelledOrders();
                     if(!Objects.isNull(cancelledOrders)){
@@ -606,7 +691,7 @@ public class Main {
                         System.out.println("Don't have any Cancelled Orders");
                     }
                 }
-                case 22 -> {
+                case 23 -> {
                     System.out.println("Cafeteria staff : List Completed Orders");
                     List<Order> completedOrders = orderManager.getCompletedOrders();
                     if(!Objects.isNull(completedOrders)){
@@ -621,7 +706,7 @@ public class Main {
                         System.out.println("Don't have any Completed Orders");
                     }
                 }
-                case 23 -> {
+                case 24 -> {
                     System.out.println("Cafeteria staff : Prepare Order");
                     List<Order> receivedOrders = orderManager.getReceivedOrders();
                     if(!Objects.isNull(receivedOrders)){
@@ -644,7 +729,7 @@ public class Main {
                             """);
                             orderManager.getActiveOrders().stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
                 }
-                case 24 -> {
+                case 25 -> {
                     System.out.println("Delivery Staff : Deliver Order");
                     List<Order> activeOrders = orderManager.getActiveOrders();
                     if(!Objects.isNull(activeOrders)){
@@ -682,31 +767,32 @@ public class Main {
                 5) Delete Food Item
                 
                 CAFETERIA ADMIN: FOOD MENU
-                6) Create Food Menu
-                7) View Food Menu
-                8) View All Food Menus
-                9) Add Food Item to Menu
-                10) Delete Food Item from Menu
-                11) Edit Food Menu
-                12) Delete Food Menu
+                6) View Food Menu of the Day
+                7) Create Food Menu
+                8) View Food Menu
+                9) View All Food Menus
+                10) Add Food Item to Menu
+                11) Delete Food Item from Menu
+                12) Edit Food Menu
+                13) Delete Food Menu
                 
                 CUSTOMER : PLACE ORDER
-                13) View Food Menu
-                14) Create Order
-                15) View Order
-                16) Edit Order
-                17) Confirm Order
-                18) Cancel Order
+                14) View Food Menu
+                15) Create Order
+                16) View Order
+                17) Edit Order
+                18) Confirm Order
+                19) Cancel Order
                 
                 CAFETERIA STAFF
-                19) List Active Orders
-                20) List Received Orders
-                21) List Cancelled Orders
-                22) List Completed Orders
-                23) Prepare Order
+                20) List Active Orders
+                21) List Received Orders
+                22) List Cancelled Orders
+                23) List Completed Orders
+                24) Prepare Order
                 
                 DELIVERY STAFF
-                24) Deliver Order
+                25) Deliver Order
                 Press 0 to exit() Application.
                 """;
         System.out.println(cafeteriaOperations);
@@ -726,13 +812,13 @@ public class Main {
         return result.toString();
     }
 
-    private static boolean isDateTimeFormatValid(String inputDateTime, String pattern) {
+    private static boolean isDateTimeFormatValid(String inputDateTime) {
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-            LocalDateTime.parse(inputDateTime, formatter);
-            return true;
-        } catch (DateTimeParseException e) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
+            LocalDateTime parse = LocalDateTime.parse(inputDateTime, formatter);
             return false;
+        } catch (DateTimeParseException e) {
+            return true;
         }
     }
 
