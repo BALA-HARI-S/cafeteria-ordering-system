@@ -12,6 +12,7 @@ public interface FoodMenuManager {
     List<FoodMenu> retrieveFoodMenuOfTheDay() throws CustomException;
     FoodMenu retrieveFoodMenu(String foodMenuName) throws CustomException;
     List<FoodItem> retrieveFoodMenuItems(int foodMenuId) throws CustomException;
+    FoodItem retrieveFoodMenuItem(int foodMenuId, int foodItemId) throws CustomException;
     List<FoodMenu> retrieveAllFoodMenus(boolean isOrderBy, int sortOrder, String columnName) throws CustomException;
     boolean addFoodItemsToMenu(int foodMenuId, int foodItemId) throws CustomException;
     boolean deleteFoodItemFromMenu(int foodMenuId, int foodItemId) throws CustomException;

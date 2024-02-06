@@ -3,81 +3,111 @@ package net.breezeware.service.impl;
 import net.breezeware.dataStore.OrderDataStore;
 import net.breezeware.entity.*;
 import net.breezeware.exception.CustomException;
-import net.breezeware.service.api.FoodItemManager;
-import net.breezeware.service.api.FoodMenuManager;
 import net.breezeware.service.api.PlaceOrderManager;
 
 import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
 import java.util.*;
 
 
 public class PlaceOrderManagerImplementation implements PlaceOrderManager {
-
-    private final FoodItemManager foodItemManager = new FoodItemManagerImplementation();
-    private final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation();
     private final OrderDataStore orderDataStore = new OrderDataStore();
 
     @Override
-    public Order createOrder(String customerId, List<String> orderedItems, String deliveryLocation,
-                             String deliveryDateTime, double totalCost) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
-        LocalDateTime localDateTime = LocalDateTime.parse(deliveryDateTime, formatter);
-        Instant deliveryDateAndTime = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
-        return new Order(customerId, orderedItems, deliveryLocation, deliveryDateAndTime, totalCost);
+    public Order createOrder(HashMap<String, Integer> foodItemsQuantityMap, double totalCost,
+                             String deliveryLocation, String deliveryDateTime) throws CustomException {
+        Order order = new Order(totalCost, OrderStatus.ORDER_CART, Instant.now());
+        LocalDateTime createdLocalDateTime = LocalDateTime.ofInstant(order.getCreated(), ZoneId.systemDefault());
+        orderDataStore.openConnection();
+        Order cartOrder = orderDataStore.insertIntoOrders(order.getTotalCost(), order.getOrderStatus().name(), createdLocalDateTime);
+        for(String foodItemName: foodItemsQuantityMap.keySet()){
+            orderDataStore.insertIntoOrderedFoodItems(cartOrder.getId(), foodItemName, foodItemsQuantityMap.get(foodItemName));
+        }
+        orderDataStore.closeConnection();
+        return cartOrder;
     }
 
     @Override
-    public Order getOrder(int orderId) {
+    public Order retrieveOrder(int orderId) throws CustomException {
         orderDataStore.openConnection();
         Order order = orderDataStore.queryOrder(orderId);
         orderDataStore.openConnection();
-        return Objects.isNull(order)? null: order;
+        return order;
     }
 
     @Override
-    public void editFoodItemsInOrder(Order order, List<String> newFoodItems) throws CustomException {
-         order.setOrderedFoodItems(newFoodItems);
-        double totalCost = 0.00;
-        for(String foodItem: order.getOrderedFoodItems()){
-            totalCost += foodItemManager.retrieveFoodItem(foodItem).getPrice();
-        }
-        order.setTotalCost(totalCost);
-    }
-
-    @Override
-    public void editDeliveryLocation(Order order, String newDeliveryLocation) {
-        order.setDeliveryLocation(newDeliveryLocation);
-    }
-
-    @Override
-    public void editDeliveryDateAndTime(Order order, String newDeliveryDateAndTime) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
-        LocalDateTime localDateTime = LocalDateTime.parse(newDeliveryDateAndTime, formatter);
-        Instant deliveryDateAndTime = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
-        order.setDeliveryDateTime(deliveryDateAndTime);
-    }
-
-    @Override
-    public Order confirmOrder(Order order) {
-        order.setCreated(Instant.now());
-        order.setOrderStatus(OrderStatus.ORDER_RECEIVED);
+    public List<Order> retrieveCartOrders() throws CustomException {
         orderDataStore.openConnection();
-         Order confirmedOrder = orderDataStore.insertOrder(order.getCustomerName(), getCustomStringRepresentation(order.getOrderedFoodItems()),
-                order.getDeliveryLocation(), LocalDateTime.ofInstant(order.getDeliveryDateTime(), ZoneId.systemDefault()),
-                order.getTotalCost(), order.getOrderStatus().name(),
-                LocalDateTime.ofInstant(order.getCreated(), ZoneId.systemDefault()));
-         orderDataStore.closeConnection();
-         return confirmedOrder;
+        List<Order> orders = orderDataStore.queryOrderByStatus(OrderStatus.ORDER_CART.name());
+        orderDataStore.closeConnection();
+        return orders;
     }
 
     @Override
-    public boolean cancelOrder(int orderId) {
+    public List<Order> retrieveConfirmedOrders() throws CustomException {
+        orderDataStore.openConnection();
+        List<Order> orders = orderDataStore.queryOrderByStatus(OrderStatus.ORDER_RECEIVED.name());
+        orderDataStore.closeConnection();
+        return orders;
+    }
+
+    @Override
+    public List<Order> retrieveCancelledOrders() throws CustomException {
+        orderDataStore.openConnection();
+        List<Order> orders = orderDataStore.queryOrderByStatus(OrderStatus.ORDER_CANCELLED.name());
+        orderDataStore.closeConnection();
+        return orders;
+    }
+
+    @Override
+    public HashMap<String, Integer> retrieveOrderedFoodItems(int orderId) throws CustomException {
+        orderDataStore.openConnection();
+        HashMap<String, Integer> foodItemsQuantityMap = orderDataStore.queryOrderedFoodItems(orderId);
+        orderDataStore.closeConnection();
+        return foodItemsQuantityMap;
+    }
+
+    @Override
+    public void editFoodItemsInOrder(int orderId, String foodItemName, int foodItemQuantity) throws CustomException {
+        orderDataStore.openConnection();
+        orderDataStore.insertIntoOrderedFoodItems(orderId, foodItemName, foodItemQuantity);
+        orderDataStore.closeConnection();
+    }
+//
+//    @Override
+//    public void editDeliveryLocation(Order order, String newDeliveryLocation) {
+//        order.setDeliveryLocation(newDeliveryLocation);
+//    }
+//
+//    @Override
+//    public void editDeliveryDateAndTime(Order order, String newDeliveryDateAndTime) {
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
+//        LocalDateTime localDateTime = LocalDateTime.parse(newDeliveryDateAndTime, formatter);
+//        Instant deliveryDateAndTime = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+//        order.setDeliveryDateTime(deliveryDateAndTime);
+//    }
+
+    @Override
+    public boolean confirmOrder(int orderId) throws CustomException {
+        orderDataStore.openConnection();
+        String confirmOrder = orderDataStore.updateOrderStatus(orderId, OrderStatus.ORDER_RECEIVED.name());
+        orderDataStore.closeConnection();
+        return OrderStatus.ORDER_RECEIVED.name().equals(confirmOrder);
+    }
+
+    @Override
+    public boolean cancelOrder(int orderId) throws CustomException {
         orderDataStore.openConnection();
         String orderStatus = orderDataStore.updateOrderStatus(orderId, OrderStatus.ORDER_CANCELLED.name());
         orderDataStore.closeConnection();
         return OrderStatus.ORDER_CANCELLED.name().equals(orderStatus);
+    }
+
+    @Override
+    public boolean deleteCartOrderFoodItem(int orderId, String foodItemName) throws CustomException {
+        orderDataStore.openConnection();
+        boolean deleteCartOrderFoodItem = orderDataStore.deleteCartOrderFoodItem(orderId, foodItemName);
+        orderDataStore.closeConnection();
+        return  deleteCartOrderFoodItem;
     }
 
 

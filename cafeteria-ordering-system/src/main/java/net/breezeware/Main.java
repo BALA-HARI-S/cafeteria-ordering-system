@@ -23,8 +23,6 @@ public class Main {
     private  static final PlaceOrderManager placeOrderManager = new PlaceOrderManagerImplementation();
     private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation();
     private static final OrderManager orderManager = new OrderManagerImplementation();
-    private static Order createdOrder;
-    private static Order confirmedOrder;
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws CustomException {
@@ -347,13 +345,21 @@ public class Main {
 
                         foodItemManager.retrieveAllFoodItems(true,1,"_id").forEach(System.out::println);
 
-                        System.out.print("Enter Food Item Name to Add: ");
-                        String foodItemName = scanner.nextLine();
-                        FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
-                        int foodItemId = foodItem.getId();
+                        boolean isAddingFoodItemsToMenu = true;
+                        while(isAddingFoodItemsToMenu){
+                            System.out.print("Enter Food Item Name to Add: ");
+                            String foodItemName = scanner.nextLine();
+                            FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                            int foodItemId = foodItem.getId();
+                            foodMenuManager.addFoodItemsToMenu(foodMenuId, foodItemId);
+                            System.out.print("Do you want to Add another Food Item?(Yes/No): ");
+                            String addFodItem = scanner.nextLine();
+                            if(addFodItem.toLowerCase().charAt(0) == 'n'){
+                                isAddingFoodItemsToMenu = false;
+                            }
+                        }
+                        System.out.println("Food Item Added to Menu!");
 
-                        boolean result = foodMenuManager.addFoodItemsToMenu(foodMenuId, foodItemId);
-                        System.out.println(result? "Food Item Added to Menu!" : "Couldn't Add Food Item to Menu");
                     } catch (CustomException e){
                         System.out.println(e.getMessage());
                     }
@@ -455,64 +461,105 @@ public class Main {
                 }
                 case 14 -> {
                     System.out.println("Customer Operation : View Food Menu of the Day");
-                    List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
-                    for(FoodMenu menu: foodMenuOfTheDay){
-                        System.out.println("Menu : " + menu.getName());
-                        System.out.println("Food Item  |  Quantity  |  Price");
-                        for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
-                            System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
+                    try{
+                        List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
+                        for(FoodMenu menu: foodMenuOfTheDay){
+                            System.out.println("Menu : " + menu.getName());
+                            System.out.println("Food Item  |  Quantity  |  Price");
+                            for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
+                                System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
+                            }
                         }
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
                     }
                 }
                 case 15 -> {
-                    System.out.println("Customer Operation : Create Order");
-                    System.out.print("Provide Order Details \nEnter Your Username: ");
+                    System.out.println("Customer Operation : Create Order \nProvide Order Details");
                     scanner.nextLine();
-                    String customerName = scanner.nextLine();
-                    System.out.print("Enter Delivery Location: ");
-                    String deliveryLocation = scanner.nextLine();
-                    System.out.print("Enter Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
-                    String deliveryDateTime = scanner.nextLine();
-                    if (isDateTimeFormatValid(deliveryDateTime)) {
-                        System.out.println("Input date-time does not match the pattern.");
-                        return;
-                    }
-                    System.out.println("Select Food Items");
-                    List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
-                    for(FoodMenu menu: foodMenuOfTheDay){
-                        System.out.println("Menu : " + menu.getName());
-                        System.out.println("Food Item  |  Quantity  |  Price");
-                        for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
-                            System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
+                    try{
+                        System.out.println("Select Food Items to Add to Order");
+                        List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
+                        for(FoodMenu menu: foodMenuOfTheDay){
+                            System.out.println("Menu : " + menu.getName());
+                            System.out.println("Food Item  |  Quantity  |  Price");
+                            for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
+                                System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
+                            }
                         }
+                        HashMap<String, Integer> foodItemsQuantityMap = new HashMap<>();
+                        double totalCost = 0.00;
+                        boolean isAddingFoodItems = true;
+                        while(isAddingFoodItems){
+                            System.out.print("Food Item Name: ");
+                            String foodItemName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                            System.out.print("Food Item Quantity: ");
+                            int foodItemQuantity = scanner.nextInt();
+                            try{
+                                FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                                for(FoodMenu menu: foodMenuOfTheDay){
+                                    FoodItem foodMenuItem = foodMenuManager.retrieveFoodMenuItem(menu.getId(), foodItem.getId());
+                                    if(foodItemsQuantityMap.containsKey(foodMenuItem.getName())){
+                                        System.out.print("You have this food item already in orders list" +
+                                                "\nDo you want to update its quantity?(Yes/No): ");
+                                        scanner.nextLine();
+                                        String updateFoodItemQuantity = scanner.nextLine();
+                                        if (updateFoodItemQuantity.toLowerCase().charAt(0) == 'y') {
+                                            foodItemsQuantityMap.put(foodItem.getName(), foodItemsQuantityMap.get(foodItem.getName()) + foodItemQuantity);
+                                            totalCost += foodItem.getPrice() * foodItemQuantity;
+                                            System.out.printf("Food Item | Quantity %n%s    %d%nFood Item Quantity Updated%n", foodItem.getName()
+                                                    ,foodItemsQuantityMap.get(foodItem.getName()));
+                                        }
+                                    } else {
+                                        foodItemsQuantityMap.put(foodMenuItem.getName(), foodItemQuantity);
+                                        totalCost += foodMenuItem.getPrice() * foodItemQuantity;
+                                        System.out.println("Food Item Added to Orders List");
+                                        scanner.nextLine();
+                                    }
+                                }
+                            } catch (CustomException e){
+                                System.out.println(e.getMessage());
+                            }
+                            System.out.print("Want to Add Food Item?(Yes/No): ");
+                            String addFoodItem = scanner.nextLine();
+                            if(addFoodItem.toLowerCase().charAt(0) == 'n'){
+                                isAddingFoodItems = false;
+                            }
+                        }
+                        System.out.print("Enter Delivery Location: ");
+                        String deliveryLocation = scanner.nextLine();
+                        System.out.print("Enter Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
+                        String deliveryDateTime = scanner.nextLine();
+                        if (isDateTimeFormatValid(deliveryDateTime)) {
+                            System.out.println("Input date-time does not match the pattern.");
+                            return;
+                        }
+                        placeOrderManager.createOrder(foodItemsQuantityMap, totalCost, deliveryLocation, deliveryDateTime);
+                        System.out.println("Order Created!");
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
                     }
-                    System.out.print("Food Item name(item1,item2,...): ");
-                    String[] selectedFoodItems = scanner.nextLine().split(",");
-                    List<String> foodItems = new ArrayList<>();
-                    for (String foodItemName: selectedFoodItems){
-                        foodItems.add(foodItemManager.retrieveFoodItem(foodItemName).getName());
-                    }
-                    double totalCost = 0.00;
-                    for(String foodItem: selectedFoodItems){
-                        totalCost += foodItemManager.retrieveFoodItem(foodItem).getPrice();
-                    }
-                    createdOrder = placeOrderManager.createOrder(customerName,foodItems,deliveryLocation,deliveryDateTime,totalCost);
-                    System.out.println(Objects.isNull(createdOrder)? "Something went wrong! Cannot Create Order" : "Order Created!");
                 }
                 case 16 -> {
-                    System.out.println("Customer Operation : View Order");
-                    if(Objects.isNull(createdOrder)){
-                        System.out.println("Your Order is Empty!");
-                    } else {
-                        System.out.printf("Customer name: %s %nDelivery Location: %s " +
-                                "%nDelivery Date And Time: %s %nTotal Cost: %.2f%n", createdOrder.getCustomerName(),
-                                createdOrder.getDeliveryLocation(), formatDateTimeInstant(createdOrder.getDeliveryDateTime()), createdOrder.getTotalCost());
-                        System.out.println("Selected Food Items");
-                        System.out.println("Food Item  |  Quantity  |  Price");
-                        for (String foodItemName: createdOrder.getOrderedFoodItems()){
-                            FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
-                            System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
+                    System.out.println("Customer Operation : View Cart");
+                    try{
+                        List<Order> cartOrders = placeOrderManager.retrieveCartOrders();
+                        if(cartOrders.isEmpty()){
+                            System.out.println("Your Cart is Empty!");
+                        } else {
+                            System.out.println("Id   |   Total Cost   |    Order Status    |   Order Created ");
+                            for(Order order: cartOrders){
+                                System.out.println(placeOrderManager.retrieveOrder(order.getId()));
+                                HashMap<String, Integer> foodItemsQuantityMap = placeOrderManager.retrieveOrderedFoodItems(order.getId());
+                                System.out.println("Food Item  |  Quantity");
+                                for(String foodItemName: foodItemsQuantityMap.keySet()){
+                                    FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                                    System.out.printf("%s   %d%n", foodItem.getName(), foodItemsQuantityMap.get(foodItemName));
+                                }
+                            }
                         }
+                    } catch (CustomException | NullPointerException e){
+                        System.out.println(e.getMessage());
                     }
                 }
                 case 17 -> {
@@ -525,58 +572,104 @@ public class Main {
                             3) Edit Delivery Date Time
                             4) Exit
                             Option :""");
-                        int orderEditOptions = scanner.nextInt();
-                        switch (orderEditOptions){
+                        int orderEditOption = scanner.nextInt();
+                        switch (orderEditOption){
                             case 1 -> {
-                                System.out.println("Select New Food Items");
-                                List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
-                                for(FoodMenu menu: foodMenuOfTheDay){
-                                    System.out.println("Menu : " + menu.getName());
-                                    System.out.println("Food Item  |  Quantity  |  Price");
-                                    for (FoodItem item: foodMenuManager.retrieveFoodMenuItems(menu.getId())){
-                                        System.out.printf("%s   |   %d  |   %.2f%n",item.getName(),item.getQuantity(),item.getPrice());
+                                System.out.println("Editing Food Items in Cart");
+                                try{
+                                    List<Order> cartOrders = placeOrderManager.retrieveCartOrders();
+                                    if(cartOrders.isEmpty()){
+                                        System.out.println("Your Cart is Empty!");
+                                    } else {
+                                        System.out.println("Id   |   Total Cost   |    Order Status    |   Order Created ");
+                                        for(Order order: cartOrders){
+                                            System.out.println(placeOrderManager.retrieveOrder(order.getId()));
+                                            HashMap<String, Integer> foodItemsQuantityMap = placeOrderManager.retrieveOrderedFoodItems(order.getId());
+                                            System.out.println("Food Item  |  Quantity");
+                                            for(String foodItemName: foodItemsQuantityMap.keySet()){
+                                                FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                                                System.out.printf("%s   %d%n", foodItem.getName(), foodItemsQuantityMap.get(foodItemName));
+                                            }
+                                        }
+
+                                        System.out.print("Choose Order From Cart to Edit Food Items(Order Id): ");
+                                        int cartOrderId = scanner.nextInt();
+                                        boolean isEditingFoodItem = true;
+                                        while (isEditingFoodItem) {
+                                            System.out.print("""
+                                                    1) Add Food Item
+                                                    2) Remove Food Item
+                                                    3) Exit
+                                                    Option :""");
+                                            int foodItemEditOption = scanner.nextInt();
+                                            switch (foodItemEditOption) {
+                                                case 1 -> {
+                                                    HashMap<String, Integer> cartFoodItems = placeOrderManager.retrieveOrderedFoodItems(cartOrderId);
+                                                    scanner.nextLine();
+                                                    System.out.println("Select Food Items to Add to Cart Order");
+                                                    List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
+                                                    for (FoodMenu menu : foodMenuOfTheDay) {
+                                                        System.out.println("Menu : " + menu.getName());
+                                                        System.out.println("Food Item  |  Quantity  |  Price");
+                                                        for (FoodItem item : foodMenuManager.retrieveFoodMenuItems(menu.getId())) {
+                                                            System.out.printf("%s   |   %d  |   %.2f%n", item.getName(), item.getQuantity(), item.getPrice());
+                                                        }
+                                                    }
+
+                                                    System.out.print("Food Item Name: ");
+                                                    String foodItemName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                                    System.out.print("Food Item Quantity: ");
+                                                    int foodItemQuantity = scanner.nextInt();
+                                                    double totalCost = placeOrderManager.retrieveOrder(cartOrderId).getTotalCost();
+                                                    FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                                                    for (FoodMenu menu : foodMenuOfTheDay) {
+                                                        FoodItem foodMenuItem = foodMenuManager.retrieveFoodMenuItem(menu.getId(), foodItem.getId());
+                                                        if (cartFoodItems.containsKey(foodMenuItem.getName())) {
+                                                            System.out.print("You have this food item already in orders list" +
+                                                                    "\nDo you want to update its quantity?(Yes/No): ");
+                                                            scanner.nextLine();
+                                                            String updateFoodItemQuantity = scanner.nextLine();
+                                                            if (updateFoodItemQuantity.toLowerCase().charAt(0) == 'y') {
+                                                                cartFoodItems.put(foodItem.getName(), cartFoodItems.get(foodItem.getName()) + foodItemQuantity);
+                                                                totalCost += foodItem.getPrice() * foodItemQuantity;
+                                                                System.out.printf("Food Item | Quantity %n%s    %d%nFood Item Quantity Updated%n", foodItem.getName()
+                                                                        , cartFoodItems.get(foodItem.getName()));
+                                                            }
+                                                        } else {
+                                                            cartFoodItems.put(foodMenuItem.getName(), foodItemQuantity);
+                                                            totalCost += foodMenuItem.getPrice() * foodItemQuantity;
+                                                            System.out.println("Food Item Added to Orders List");
+                                                            scanner.nextLine();
+                                                        }
+                                                    }
+                                                    placeOrderManager.editFoodItemsInOrder(cartOrderId, foodItem.getName(), cartFoodItems.get(foodItem.getName()));
+                                                    System.out.println("Cart Order Updated!");
+                                                }
+                                                case 2 -> {
+                                                    HashMap<String, Integer> cartFoodItems = placeOrderManager.retrieveOrderedFoodItems(cartOrderId);
+                                                    scanner.nextLine();
+                                                    System.out.println("Select Food Items to Remove from Cart Order");
+                                                    System.out.print("Food Item Name to Remove from Cart Order: ");
+                                                    String foodItemName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                                    FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                                                    if(cartFoodItems.containsKey(foodItem.getName())){
+                                                         placeOrderManager.deleteCartOrderFoodItem(cartOrderId, foodItemName);
+                                                         System.out.println("Food Item deleted From this Cart Order");
+                                                    } else {
+                                                        System.out.println("Food Item Not in this Cart Order");
+                                                    }
+
+
+                                                }
+                                                case 3 -> isEditingFoodItem = false;
+                                            }
+                                        }
                                     }
+                                } catch (CustomException | NullPointerException e){
+                                    System.out.println(e.getMessage());
                                 }
-                                scanner.nextLine();
-                                System.out.print("Food Item name(item1,item2,...): ");
-                                String[] selectedFoodItems = scanner.nextLine().split(",");
-                                List<String> foodItems = new ArrayList<>();
-                                for (String foodItemName: selectedFoodItems){
-                                    foodItems.add(foodItemManager.retrieveFoodItem(foodItemName).getName());
-                                }
-                                placeOrderManager.editFoodItemsInOrder(createdOrder, foodItems);
-                                System.out.println("Food Items Updated");
-                                System.out.printf("Customer name: %s %nDelivery Location: %s " +
-                                                "%nDelivery Date And Time: %s %nTotal Cost: %.2f%n", createdOrder.getCustomerName(),
-                                        createdOrder.getDeliveryLocation(),formatDateTimeInstant(createdOrder.getDeliveryDateTime()), createdOrder.getTotalCost());
-                                System.out.println("Selected Food Items");
-                                System.out.println("Food Item  |  Quantity  |  Price");
-                                for (String foodItemName: createdOrder.getOrderedFoodItems()){
-                                    FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
-                                    System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
-                                }
-                            }
-                            case 2 -> {// TODO
-                                System.out.print("Enter New Delivery Location: ");
-                                String newDeliveryLocation = scanner.nextLine();
-                                placeOrderManager.editDeliveryLocation(createdOrder, newDeliveryLocation);
-                                System.out.println("Order Delivery Location Updated");
-                                System.out.printf("Customer name: %s %nDelivery Location: %s " +
-                                                "%nDelivery Date And Time: %s %nTotal Cost: %.2f%n", createdOrder.getCustomerName(),
-                                        createdOrder.getDeliveryLocation(),formatDateTimeInstant(createdOrder.getDeliveryDateTime()), createdOrder.getTotalCost());
-                            }
-                            case 3 -> {
-                                System.out.print("Enter New Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
-                                String newDeliveryDateTime = scanner.nextLine();
-                                if (isDateTimeFormatValid(newDeliveryDateTime)) {
-                                    System.out.println("Input date-time does not match the pattern.");
-                                    return;
-                                }
-                                placeOrderManager.editDeliveryDateAndTime(createdOrder, newDeliveryDateTime);
-                                System.out.println("Order Delivery Date And Time Updated");
-                                System.out.printf("Customer name: %s %nDelivery Location: %s " +
-                                                "%nDelivery Date And Time: %s %nTotal Cost: %.2f%n", createdOrder.getCustomerName(),
-                                        createdOrder.getDeliveryLocation(),formatDateTimeInstant(createdOrder.getDeliveryDateTime()), createdOrder.getTotalCost());
+
+
                             }
                             case 4 -> {
                                 isEditingOrder = false;
@@ -586,64 +679,54 @@ public class Main {
                 }
                 case 18 -> {
                     System.out.println("Customer Operation : Confirm Order");
-                    if(Objects.isNull(createdOrder)){
-                        System.out.println("Your Order is Empty!");
-                    } else {
-                        System.out.printf("Customer name: %s %nDelivery Location: %s " +
-                                        "%nDelivery Date And Time: %s %nTotal Cost: %.2f%n", createdOrder.getCustomerName(),
-                                createdOrder.getDeliveryLocation(),formatDateTimeInstant(createdOrder.getDeliveryDateTime()), createdOrder.getTotalCost());
-                        System.out.println("Selected Food Items");
-                        System.out.println("Food Item  |  Quantity  |  Price");
-                        for (String foodItemName: createdOrder.getOrderedFoodItems()){
-                            FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
-                            System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
-                        }
-                    }
-                    System.out.print("Confirm this Order?(Yes/No): ");
-                    scanner.nextLine();
-                    boolean isOrderConfirmed = scanner.nextLine().toUpperCase().charAt(0) == 'Y';
-                    if(isOrderConfirmed){
-                        confirmedOrder = placeOrderManager.confirmOrder(createdOrder);
-                        if (!Objects.isNull(confirmedOrder)){
-                            System.out.println("Order Received!\n"+
-                                            "_id | customer_name | delivery_location | delivery_date_time  | total_cost |  order_status  |  created\n"
-                                            +confirmedOrder);
-                            System.out.println("Ordered Food Items");
-                            System.out.println("Food Item  |  Quantity  |  Price");
-                            for (String foodItemName: placeOrderManager.getOrder(confirmedOrder.getId()).getOrderedFoodItems()){
-                                FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
-                                System.out.printf("%s  |   %d  |   %.2f%n",foodItem.getName(),foodItem.getQuantity(),foodItem.getPrice());
-                            }
-
+                    try{
+                        List<Order> cartOrders = placeOrderManager.retrieveCartOrders();
+                        if(cartOrders.isEmpty()){
+                            System.out.println("Your Cart is Empty!");
                         } else {
-                            System.out.println("Something wrong, Couldn't Place this Order,Retry Again!");
+                            System.out.println("Id   |   Total Cost   |    Order Status    |   Order Created ");
+                            for(Order order: cartOrders){
+                                System.out.println(placeOrderManager.retrieveOrder(order.getId()));
+                                HashMap<String, Integer> foodItemsQuantityMap = placeOrderManager.retrieveOrderedFoodItems(order.getId());
+                                System.out.println("Food Item  |  Quantity");
+                                for(String foodItemName: foodItemsQuantityMap.keySet()){
+                                    FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                                    System.out.printf("%s   %d%n", foodItem.getName(), foodItemsQuantityMap.get(foodItemName));
+                                }
+                            }
                         }
-                    } else {
-                        System.out.println("Aborting Order Confirmation!");
+                        System.out.print("Enter Order Id to Confirm Order: ");
+                        int orderId = scanner.nextInt();
+                        placeOrderManager.confirmOrder(orderId);
+                        System.out.println("Order Confirmed");
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
                     }
                 }
                 case 19 -> {
                     System.out.println("Customer Operation : Cancel the Order");
-                    if(Objects.isNull(confirmedOrder)){
-                        System.out.print("Order is Empty!\n Want to Cancel Order by it's Id(Yes/No): ");
-                        scanner.nextLine();
-                        boolean isCancelByOrderId =  scanner.nextLine().toUpperCase().charAt(0) == 'Y';
-                        if(isCancelByOrderId){
-                            System.out.print("Order Id: ");
-                            int orderId = scanner.nextInt();
-                            boolean cancelledOrder = placeOrderManager.cancelOrder(orderId);
-                            System.out.println(cancelledOrder? "Order Cancelled!" : "Cannot cancel order!");
-                            System.out.println("Details of cancelled order!\n"+
-                                    "_id | customer_name | delivery_location | delivery_date_time  | total_cost |  order_status  |  created\n"
-                                    +cancelledOrder);
-                            return;
+                    try{
+                        List<Order> cartOrders = placeOrderManager.retrieveConfirmedOrders();
+                        if(cartOrders.isEmpty()){
+                            System.out.println("Your Order is Empty!");
+                        } else {
+                            System.out.println("Id   |   Total Cost   |    Order Status    |   Order Created ");
+                            for(Order order: cartOrders){
+                                System.out.println(placeOrderManager.retrieveOrder(order.getId()));
+                                HashMap<String, Integer> foodItemsQuantityMap = placeOrderManager.retrieveOrderedFoodItems(order.getId());
+                                System.out.println("Food Item  |  Quantity");
+                                for(String foodItemName: foodItemsQuantityMap.keySet()){
+                                    FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
+                                    System.out.printf("%s   %d%n", foodItem.getName(), foodItemsQuantityMap.get(foodItemName));
+                                }
+                            }
                         }
-                    } else {
-                        boolean cancelledOrder = placeOrderManager.cancelOrder(confirmedOrder.getId());
-                        System.out.println(cancelledOrder? "Order Cancelled!" : "Cannot cancel order!");
-                        System.out.println("Order Cancelled!\n"+
-                                "_id | customer_name | delivery_location | delivery_date_time  | total_cost |  order_status  |  created\n"
-                                +confirmedOrder);
+                        System.out.print("Enter Order Id to Cancel Order: ");
+                        int orderId = scanner.nextInt();
+                        placeOrderManager.confirmOrder(orderId);
+                        System.out.println("Order Cancelled");
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
                     }
                 }
                 case 20 -> {
@@ -779,10 +862,12 @@ public class Main {
                 CUSTOMER : PLACE ORDER
                 14) View Food Menu
                 15) Create Order
-                16) View Order
+                16) View Card
                 17) Edit Order
                 18) Confirm Order
+                    View Confirmed Orders
                 19) Cancel Order
+                    View Cancelled Orders
                 
                 CAFETERIA STAFF
                 20) List Active Orders

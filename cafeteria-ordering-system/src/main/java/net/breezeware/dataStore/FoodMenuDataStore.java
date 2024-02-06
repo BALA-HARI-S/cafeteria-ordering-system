@@ -4,6 +4,8 @@ import net.breezeware.entity.AvailableDay;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
 import net.breezeware.exception.CustomException;
+import net.breezeware.service.api.FoodItemManager;
+import net.breezeware.service.impl.FoodItemManagerImplementation;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -46,6 +48,11 @@ public class FoodMenuDataStore {
     private static final String QUERY_FOOD_MENU_ITEMS = "SELECT " + COLUMN_FOOD_ITEM_NAME + " FROM " + TABLE_FOOD_ITEMS +
             " INNER JOIN " + TABLE_FOOD_MENU_ITEMS + " ON " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_ITEM_ID  + "="
             +  TABLE_FOOD_ITEMS + "." + COLUMN_FOOD_ID + " WHERE " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_MENU_ID + "=?";
+
+    private static final String QUERY_FOOD_MENU_ITEM = "SELECT " + COLUMN_FOOD_ITEM_NAME + " FROM " + TABLE_FOOD_ITEMS +
+            " INNER JOIN " + TABLE_FOOD_MENU_ITEMS + " ON " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_ITEM_ID  + "="
+            +  TABLE_FOOD_ITEMS + "." + COLUMN_FOOD_ID + " WHERE " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_MENU_ID
+            + "=? AND " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_ITEM_ID + " =?";
     private static final String INERT_FOOD_ITEM_TO_MENU = "INSERT INTO " + TABLE_FOOD_MENU_ITEMS + "(" + COLUMN_FOOD_MENU_ID
             + "," + COLUMN_FOOD_ITEM_ID + ") VALUES( ?, ?)";
     private static final String REMOVE_FOOD_ITEM_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS + " WHERE " + COLUMN_FOOD_MENU_ID + " = ? AND " + COLUMN_FOOD_ITEM_ID + " = ?";
@@ -54,7 +61,7 @@ public class FoodMenuDataStore {
     private static final int ORDER_BY_ASC = 1;
 
     private Connection connection;
-    private final FoodItemDataStore foodItemDataStore = new FoodItemDataStore();
+    private final FoodItemManager foodItemManager = new FoodItemManagerImplementation();
 
     public void openConnection() throws CustomException {
         try {
@@ -136,21 +143,38 @@ public class FoodMenuDataStore {
         }
     }
 
-    public List<FoodItem> getFoodMenuItems(int foodMenuId) throws CustomException {
+    public List<FoodItem> queryFoodMenuItems(int foodMenuId) throws CustomException {
         try (PreparedStatement queryFoodMenuItems = connection.prepareStatement(QUERY_FOOD_MENU_ITEMS)){
             queryFoodMenuItems.setInt(1, foodMenuId);
             ResultSet result = queryFoodMenuItems.executeQuery();
             List<FoodItem> foodMenuItems = new ArrayList<>();
-            foodItemDataStore.openConnection();
             while (result.next()){
                 String foodItemName = result.getString(COLUMN_FOOD_ITEM_NAME);
-                foodMenuItems.add(foodItemDataStore.queryFoodItem(foodItemName));
+                foodMenuItems.add(foodItemManager.retrieveFoodItem(foodItemName));
             }
-            foodItemDataStore.closeConnection();
             result.close();
             return foodMenuItems;
-        } catch (SQLException | RuntimeException | CustomException e){
+        } catch (SQLException e){
             throw new CustomException("Couldn't Query Food Menu Items. " + e.getMessage());
+        }
+    }
+
+    public FoodItem queryFoodMenuItem(int foodMenuId, int foodItemId) throws CustomException {
+        try (PreparedStatement queryFoodMenuItems = connection.prepareStatement(QUERY_FOOD_MENU_ITEM)){
+            queryFoodMenuItems.setInt(1, foodMenuId);
+            queryFoodMenuItems.setInt(2, foodItemId);
+            ResultSet result = queryFoodMenuItems.executeQuery();
+            if(result.next()){
+                String foodItemName = result.getString(COLUMN_FOOD_ITEM_NAME);
+                FoodItem foodMenuItem = foodItemManager.retrieveFoodItem(foodItemName);
+                result.close();
+                return foodMenuItem;
+            } else {
+                result.close();
+                throw new CustomException("Food Item Not in the Menu.");
+            }
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Query Food Menu Item. " + e.getMessage());
         }
     }
 
