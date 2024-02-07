@@ -1,18 +1,21 @@
 package net.breezeware.entity;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public class Delivery {
     private int order_id;
-    private String orderLocation;
-    private Instant orderDateTime;
+    private String deliveryLocation;
+    private Instant deliveryDateTime;
 
     public Delivery(){}
 
-    public Delivery(int order_id, String orderLocation, Instant orderDateTime) {
+    public Delivery(int order_id, String deliveryLocation, Instant deliveryDateTime) {
         this.order_id = order_id;
-        this.orderLocation = orderLocation;
-        this.orderDateTime = orderDateTime;
+        this.deliveryLocation = deliveryLocation;
+        this.deliveryDateTime = deliveryDateTime;
     }
 
     public int getOrder_id() {
@@ -23,28 +26,30 @@ public class Delivery {
         this.order_id = order_id;
     }
 
-    public String getOrderLocation() {
-        return orderLocation;
+    public String getDeliveryLocation() {
+        return deliveryLocation;
     }
 
-    public void setOrderLocation(String orderLocation) {
-        this.orderLocation = orderLocation;
+    public void setDeliveryLocation(String deliveryLocation) {
+        this.deliveryLocation = deliveryLocation;
     }
 
-    public Instant getOrderDateTime() {
-        return orderDateTime;
+    public Instant getDeliveryDateTime() {
+        return deliveryDateTime;
     }
 
-    public void setOrderDateTime(Instant orderDateTime) {
-        this.orderDateTime = orderDateTime;
+    public void setDeliveryDateTime(Instant deliveryDateTime) {
+        this.deliveryDateTime = deliveryDateTime;
+    }
+
+    private String formatDeliveryDateTimeInstant(){
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(deliveryDateTime, ZoneId.systemDefault());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
+        return  localDateTime.format(formatter);
     }
 
     @Override
     public String toString() {
-        return "Delivery{" +
-                "order_id=" + order_id +
-                ", orderLocation='" + orderLocation + '\'' +
-                ", orderDateTime='" + orderDateTime + '\'' +
-                '}';
+        return  "%s   %s".formatted(deliveryLocation, formatDeliveryDateTimeInstant());
     }
 }

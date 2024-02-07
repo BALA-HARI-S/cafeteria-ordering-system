@@ -12,7 +12,7 @@ import java.util.Objects;
 public class OrderManagerImplementation implements OrderManager {
     private final OrderDataStore orderDataStore = new OrderDataStore();
     @Override
-    public List<Order> getActiveOrders() throws CustomException {
+    public List<Order> retrieveActiveOrders() throws CustomException {
         orderDataStore.openConnection();
         List<Order> orders = orderDataStore.queryOrderByStatus(OrderStatus.ORDER_PREPARED.name());
         orderDataStore.closeConnection();
@@ -20,27 +20,27 @@ public class OrderManagerImplementation implements OrderManager {
     }
 
     @Override
-    public List<Order> getReceivedOrders() throws CustomException {
+    public List<Order> retrieveReceivedOrders() throws CustomException {
         orderDataStore.openConnection();
         List<Order> orders =  orderDataStore.queryOrderByStatus(OrderStatus.ORDER_RECEIVED.name());
         orderDataStore.closeConnection();
-        return orders.isEmpty() ? null : orders;
+        return orders;
     }
 
     @Override
-    public List<Order> getCancelledOrders() throws CustomException {
+    public List<Order> retrieveCancelledOrders() throws CustomException {
         orderDataStore.openConnection();
         List<Order> orders =  orderDataStore.queryOrderByStatus(OrderStatus.ORDER_CANCELLED.name());
         orderDataStore.closeConnection();
-        return orders.isEmpty() ? null : orders;
+        return orders;
     }
 
     @Override
-    public List<Order> getCompletedOrders() throws CustomException {
+    public List<Order> retrieveCompletedOrders() throws CustomException {
         orderDataStore.openConnection();
         List<Order> orders =  orderDataStore.queryOrderByStatus(OrderStatus.ORDER_DELIVERED.name());
         orderDataStore.closeConnection();
-        return orders.isEmpty() ? null : orders;
+        return orders;
     }
 
     @Override

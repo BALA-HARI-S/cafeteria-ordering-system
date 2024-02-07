@@ -6,10 +6,10 @@ import net.breezeware.exception.CustomException;
 import java.util.List;
 
 public interface OrderManager {
-    List<Order> getActiveOrders() throws CustomException;
-    List<Order> getReceivedOrders() throws CustomException;
-    List<Order> getCancelledOrders() throws CustomException;
-    List<Order> getCompletedOrders() throws CustomException;
+    List<Order> retrieveActiveOrders() throws CustomException;
+    List<Order> retrieveReceivedOrders() throws CustomException;
+    List<Order> retrieveCancelledOrders() throws CustomException;
+    List<Order> retrieveCompletedOrders() throws CustomException;
     boolean prepareOrder(int orderId) throws CustomException;
 
 }

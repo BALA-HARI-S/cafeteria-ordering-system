@@ -6,6 +6,7 @@ import net.breezeware.exception.CustomException;
 import net.breezeware.service.api.PlaceOrderManager;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
@@ -22,6 +23,8 @@ public class PlaceOrderManagerImplementation implements PlaceOrderManager {
         for(String foodItemName: foodItemsQuantityMap.keySet()){
             orderDataStore.insertIntoOrderedFoodItems(cartOrder.getId(), foodItemName, foodItemsQuantityMap.get(foodItemName));
         }
+        LocalDateTime localDateTime = LocalDateTime.parse(deliveryDateTime, DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a"));
+        orderDataStore.insertDeliveryDetails(cartOrder.getId(), deliveryLocation, localDateTime);
         orderDataStore.closeConnection();
         return cartOrder;
     }
@@ -67,24 +70,48 @@ public class PlaceOrderManagerImplementation implements PlaceOrderManager {
     }
 
     @Override
-    public void editFoodItemsInOrder(int orderId, String foodItemName, int foodItemQuantity) throws CustomException {
+    public Delivery retrieveDeliveryDetails(int orderId) throws CustomException {
+        orderDataStore.openConnection();
+        Delivery delivery = orderDataStore.queryDeliveryDetails(orderId);
+        orderDataStore.closeConnection();
+        return delivery;
+    }
+
+    @Override
+    public void updateFoodItemsInOrder(int orderId, String foodItemName, int foodItemQuantity) throws CustomException {
         orderDataStore.openConnection();
         orderDataStore.insertIntoOrderedFoodItems(orderId, foodItemName, foodItemQuantity);
         orderDataStore.closeConnection();
     }
-//
-//    @Override
-//    public void editDeliveryLocation(Order order, String newDeliveryLocation) {
-//        order.setDeliveryLocation(newDeliveryLocation);
-//    }
-//
-//    @Override
-//    public void editDeliveryDateAndTime(Order order, String newDeliveryDateAndTime) {
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
-//        LocalDateTime localDateTime = LocalDateTime.parse(newDeliveryDateAndTime, formatter);
-//        Instant deliveryDateAndTime = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
-//        order.setDeliveryDateTime(deliveryDateAndTime);
-//    }
+
+    @Override
+    public void updateDeliveryLocation(int orderId, String newDeliveryLocation) throws CustomException {
+        orderDataStore.openConnection();
+        orderDataStore.updateDeliveryLocation(orderId, newDeliveryLocation);
+        orderDataStore.closeConnection();
+    }
+
+    @Override
+    public void updateDeliveryDateAndTime(int orderId, String newDeliveryDateTime) throws CustomException {
+        orderDataStore.openConnection();
+        LocalDateTime localDateTime = LocalDateTime.parse(newDeliveryDateTime, DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a"));
+        orderDataStore.updateDeliveryDateTime(orderId, localDateTime);
+        orderDataStore.closeConnection();
+    }
+
+    @Override
+    public void updateCartOrderTotalCost(int orderId, double totalCost) throws CustomException {
+        orderDataStore.openConnection();
+        orderDataStore.updateCartOrderTotalCost(orderId, totalCost);
+        orderDataStore.closeConnection();
+    }
+
+    @Override
+    public void updateCartOrderFoodItemQuantity(int orderId, String foodItemName, int quantity) throws CustomException {
+        orderDataStore.openConnection();
+        orderDataStore.updateCartOrderFoodItemQuantity(orderId, foodItemName, quantity);
+        orderDataStore.closeConnection();
+    }
 
     @Override
     public boolean confirmOrder(int orderId) throws CustomException {
@@ -110,12 +137,4 @@ public class PlaceOrderManagerImplementation implements PlaceOrderManager {
         return  deleteCartOrderFoodItem;
     }
 
-
-    private static String getCustomStringRepresentation(List<String> list) {
-        StringBuilder result = new StringBuilder(String.valueOf(list.get(0)));
-        for (int i = 1; i < list.size(); i++) {
-            result.append(",").append(list.get(i));
-        }
-        return result.toString();
-    }
 }

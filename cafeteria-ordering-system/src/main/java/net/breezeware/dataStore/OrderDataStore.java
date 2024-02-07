@@ -1,5 +1,6 @@
 package net.breezeware.dataStore;
 
+import net.breezeware.entity.Delivery;
 import net.breezeware.entity.Order;
 import net.breezeware.entity.OrderStatus;
 import net.breezeware.exception.CustomException;
@@ -18,8 +19,9 @@ public class OrderDataStore {
     private static final String DB_PASSWORD = "P@ssw0rd";
     private static final String TABLE_ORDERS = "orders";
     private static final String TABLE_ORDERED_FOOD_ITEMS = "ordered_food_items";
+    private static final String TABLE_DELIVERY = "delivery";
 
-    private static final String COLUMN_ORDER_ID = "_id";
+    private static final String COLUMN_ORDER_ORDER_ID = "_id";
     private static final String COLUMN_ORDER_CUSTOMER_ID = "customer_id";
     private static final String COLUMN_ORDER_TOTAL_COST = "total_cost";
     private static final String COLUMN_ORDER_STATUS = "order_status";
@@ -29,12 +31,18 @@ public class OrderDataStore {
     private static final String COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME = "food_item_name";
     private static final String COLUMN_ORDERED_FOOD_ITEMS_QUANTITY = "quantity";
 
+    private static final String COLUMN_DELIVERY_ORDER_ID = "order_id";
+    private static final String COLUMN_DELIVERY_LOCATION = "delivery_location";
+    private static final String COLUMN_DELIVERY_DATE_TIME = "delivery_date_time";
+
 
     private static final String INSERT_INTO_ORDERS = "INSERT INTO " + TABLE_ORDERS + "(" +COLUMN_ORDER_TOTAL_COST + ","
             + COLUMN_ORDER_STATUS + "," + COLUMN_ORDER_CREATED + ") VALUES(?,?,?)";
-    private static final String QUERY_ORDER_ORDER_ID = "SELECT * FROM " + TABLE_ORDERS + " WHERE " + COLUMN_ORDER_ID + " =?";
-    private static final String UPDATE_ORDER_STATUS = "UPDATE " + TABLE_ORDERS + " SET "+ COLUMN_ORDER_STATUS + " =? WHERE " + COLUMN_ORDER_ID + " =?";
+    private static final String QUERY_ORDER_ORDER_ID = "SELECT * FROM " + TABLE_ORDERS + " WHERE " + COLUMN_ORDER_ORDER_ID + " =?";
+    private static final String UPDATE_ORDER_STATUS = "UPDATE " + TABLE_ORDERS + " SET "+ COLUMN_ORDER_STATUS + " =? WHERE " + COLUMN_ORDER_ORDER_ID + " =?";
     private static final String QUERY_ORDER_BY_ORDER_STATUS = "SELECT * FROM " + TABLE_ORDERS + " WHERE " + COLUMN_ORDER_STATUS + " =?";
+    private static final String UPDATE_CART_ORDER_TOTAL_COST = "UPDATE " + TABLE_ORDERS + " SET " +
+            COLUMN_ORDER_TOTAL_COST + " = ? WHERE " + COLUMN_ORDER_ORDER_ID + " = ?";
 
     private static final String INSERT_INTO_ORDERED_FOOD_ITEMS = "INSERT INTO " + TABLE_ORDERED_FOOD_ITEMS + "(" +
             COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + "," + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME + "," +
@@ -45,6 +53,16 @@ public class OrderDataStore {
 
     private static final String DELETE_FROM_ORDERED_FOOD_ITEMS = "DELETE FROM " + TABLE_ORDERED_FOOD_ITEMS + " WHERE " +
             COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + " = ? AND " + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME + " = ?";
+    private static final String UPDATE_ORDERED_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_ORDERED_FOOD_ITEMS + " SET " + COLUMN_ORDERED_FOOD_ITEMS_QUANTITY +
+            " = ? WHERE " + COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + " = ? AND " + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME + " = ?";
+
+    private static final String INSERT_INTO_DELIVERY = "INSERT INTO " + TABLE_DELIVERY + "(" + COLUMN_DELIVERY_ORDER_ID +
+            "," + COLUMN_DELIVERY_LOCATION + "," + COLUMN_DELIVERY_DATE_TIME + ") VALUES(?,?,?)";
+    private static final String QUERY_DELIVERY_DETAILS = "SELECT * FROM " + TABLE_DELIVERY + " WHERE " + COLUMN_DELIVERY_ORDER_ID + " = ?";
+    private static final String UPDATE_DELIVERY_LOCATION = "UPDATE " + TABLE_DELIVERY + " SET " + COLUMN_DELIVERY_LOCATION
+            + " = ? WHERE " + COLUMN_DELIVERY_ORDER_ID + " = ?";
+    private static final String UPDATE_DELIVERY_DATE_TIME = "UPDATE " + TABLE_DELIVERY + " SET " + COLUMN_DELIVERY_DATE_TIME
+            + " = ? WHERE " + COLUMN_DELIVERY_ORDER_ID + " = ?";
     private Connection connection;
     public void openConnection() throws CustomException {
         try {
@@ -72,7 +90,7 @@ public class OrderDataStore {
             insertIntoOrders.executeUpdate();
             ResultSet resultSet = insertIntoOrders.getGeneratedKeys();
             if(resultSet.next()){
-                int orderId = resultSet.getInt(COLUMN_ORDER_ID);
+                int orderId = resultSet.getInt(COLUMN_ORDER_ORDER_ID);
                 Order order = queryOrder(orderId);
                 resultSet.close();
                 return order;
@@ -97,13 +115,24 @@ public class OrderDataStore {
             }
     }
 
+    public void insertDeliveryDetails(int orderId, String deliveryLocation, LocalDateTime deliveryDateTime) throws CustomException{
+        try(PreparedStatement insertDeliveryDetails = connection.prepareStatement(INSERT_INTO_DELIVERY)){
+            insertDeliveryDetails.setInt(1, orderId);
+            insertDeliveryDetails.setString(2, deliveryLocation);
+            insertDeliveryDetails.setTimestamp(3, Timestamp.valueOf(deliveryDateTime));
+            insertDeliveryDetails.executeUpdate();
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Insert Delivery Details into Delivery. " + e.getMessage());
+        }
+    }
+
     public Order queryOrder(int orderId) throws CustomException{
         try(PreparedStatement queryOrder = connection.prepareStatement(QUERY_ORDER_ORDER_ID)){
             queryOrder.setInt(1,orderId);
             ResultSet resultSet = queryOrder.executeQuery();
             if(resultSet.next()){
                 Order order = new Order();
-                order.setId(resultSet.getInt(COLUMN_ORDER_ID));
+                order.setId(resultSet.getInt(COLUMN_ORDER_ORDER_ID));
                 order.setTotalCost(resultSet.getDouble(COLUMN_ORDER_TOTAL_COST));
                 order.setOrderStatus(OrderStatus.valueOf(resultSet.getString(COLUMN_ORDER_STATUS)));
                 order.setCreated(resultSet.getTimestamp(COLUMN_ORDER_CREATED).toInstant());
@@ -125,7 +154,7 @@ public class OrderDataStore {
             List<Order> orders = new ArrayList<>();
             while(resultSet.next()){
                 Order order = new Order();
-                order.setId(resultSet.getInt(COLUMN_ORDER_ID));
+                order.setId(resultSet.getInt(COLUMN_ORDER_ORDER_ID));
                 order.setTotalCost(resultSet.getDouble(COLUMN_ORDER_TOTAL_COST));
                 order.setOrderStatus(OrderStatus.valueOf(resultSet.getString(COLUMN_ORDER_STATUS)));
                 order.setCreated(resultSet.getTimestamp(COLUMN_ORDER_CREATED).toInstant());
@@ -154,6 +183,26 @@ public class OrderDataStore {
         }
     }
 
+    public Delivery queryDeliveryDetails(int orderId) throws CustomException{
+        try(PreparedStatement queryDeliveryDetails = connection.prepareStatement(QUERY_DELIVERY_DETAILS)){
+            queryDeliveryDetails.setInt(1,orderId);
+            ResultSet resultSet = queryDeliveryDetails.executeQuery();
+            if(resultSet.next()){
+                Delivery delivery = new Delivery();
+                delivery.setOrder_id(resultSet.getInt(COLUMN_DELIVERY_ORDER_ID));
+                delivery.setDeliveryLocation(resultSet.getString(COLUMN_DELIVERY_LOCATION));
+                delivery.setDeliveryDateTime(resultSet.getTimestamp(COLUMN_DELIVERY_DATE_TIME).toInstant());
+                resultSet.close();
+                return delivery;
+            } else {
+                resultSet.close();
+                throw new CustomException("Delivery Details not found for Order Id: " + orderId);
+            }
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Retrieve the Delivery Record. " + e.getMessage());
+        }
+    }
+
     public String updateOrderStatus(int orderId, String orderStatus) throws CustomException {
         try(PreparedStatement updateOrderStatus = connection.prepareStatement(UPDATE_ORDER_STATUS,
                 Statement.RETURN_GENERATED_KEYS)) {
@@ -174,6 +223,27 @@ public class OrderDataStore {
         }
     }
 
+    public void updateCartOrderTotalCost(int orderId, double totalCost) throws CustomException {
+        try(PreparedStatement updateCartOrderTotalCost = connection.prepareStatement(UPDATE_CART_ORDER_TOTAL_COST)){
+            updateCartOrderTotalCost.setDouble(1,totalCost);
+            updateCartOrderTotalCost.setInt(2,orderId);
+            updateCartOrderTotalCost.executeUpdate();
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Update Cart Order Total Cost. " + e.getMessage());
+        }
+    }
+
+    public void updateCartOrderFoodItemQuantity(int orderId,String foodItemName, int quantity) throws CustomException {
+        try(PreparedStatement updateQuantity = connection.prepareStatement(UPDATE_ORDERED_FOOD_ITEM_QUANTITY)){
+            updateQuantity.setDouble(1,quantity);
+            updateQuantity.setInt(2,orderId);
+            updateQuantity.setString(3,foodItemName);
+            updateQuantity.executeUpdate();
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Update Cart Order Total Cost. " + e.getMessage());
+        }
+    }
+
     public boolean deleteCartOrderFoodItem(int orderId, String foodItemName) throws CustomException {
         try(PreparedStatement deleteCartOrderFoodItem= connection.prepareStatement(DELETE_FROM_ORDERED_FOOD_ITEMS)){
             deleteCartOrderFoodItem.setInt(1,orderId);
@@ -181,6 +251,26 @@ public class OrderDataStore {
             return deleteCartOrderFoodItem.executeUpdate() > 0;
         } catch (SQLException e){
             throw new CustomException("Couldn't Delete Cart Order Food Item. " + e.getMessage());
+        }
+    }
+
+    public void updateDeliveryLocation(int orderId, String deliveryLocation) throws CustomException{
+        try(PreparedStatement updateDeliveryLocation = connection.prepareStatement(UPDATE_DELIVERY_LOCATION)){
+            updateDeliveryLocation.setString(1, deliveryLocation);
+            updateDeliveryLocation.setInt(2, orderId);
+            updateDeliveryLocation.executeUpdate();
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Insert Delivery Details into Delivery. " + e.getMessage());
+        }
+    }
+
+    public void updateDeliveryDateTime(int orderId, LocalDateTime deliveryDateTime) throws CustomException{
+        try(PreparedStatement updateDeliveryDateTime = connection.prepareStatement(UPDATE_DELIVERY_DATE_TIME)){
+            updateDeliveryDateTime.setTimestamp(1, Timestamp.valueOf(deliveryDateTime));
+            updateDeliveryDateTime.setInt(2, orderId);
+            updateDeliveryDateTime.executeUpdate();
+        } catch (SQLException e){
+            throw new CustomException("Couldn't Insert Delivery Details into Delivery. " + e.getMessage());
         }
     }
 }
