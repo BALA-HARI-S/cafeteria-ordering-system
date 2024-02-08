@@ -12,12 +12,17 @@ import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FoodMenuManagerImplementation implements FoodMenuManager {
     private final FoodMenuDataStore foodMenuStore = new FoodMenuDataStore();
     @Override
     public FoodMenu createFoodMenu(String name, List<AvailableDay> availableDay) throws CustomException {
         String menuName = capitalizeFirstLetter(name);
+        if(validateFoodMenuName(menuName) || menuName.isEmpty()){
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+        }
         Instant instantNow = Instant.now();
         LocalDateTime createdDateTime = LocalDateTime.ofInstant(instantNow, ZoneId.systemDefault());
         LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(instantNow, ZoneId.systemDefault());
@@ -41,11 +46,17 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
                 }
             }
         }
+        if(foodMenuOfTheDay.isEmpty()){
+            throw new CustomException("No Food Menu Available Today!");
+        }
         return foodMenuOfTheDay;
     }
 
     @Override
     public FoodMenu retrieveFoodMenu(String foodMenuName) throws CustomException {
+        if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+        }
         foodMenuStore.openConnection();
         FoodMenu foodMenu = foodMenuStore.queryFoodMenu(capitalizeFirstLetter(foodMenuName));
         foodMenuStore.closeConnection();
@@ -102,6 +113,9 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
 
     @Override
     public FoodMenu updateFoodMenuName(String newName, String foodMenuName) throws CustomException {
+        if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+        }
         foodMenuStore.openConnection();
         FoodMenu foodMenu = foodMenuStore.updateFoodMenuName(
                 capitalizeFirstLetter(newName), capitalizeFirstLetter(foodMenuName));
@@ -111,6 +125,9 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
 
     @Override
     public FoodMenu updateFoodMenuAvailableDay(List<AvailableDay> availableDays, String foodMenuName) throws CustomException {
+        if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+        }
         foodMenuStore.openConnection();
         FoodMenu foodMenu = foodMenuStore.updateFoodMenuAvailableDay(
                 getCustomStringRepresentation(availableDays), capitalizeFirstLetter(foodMenuName));
@@ -120,6 +137,9 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
 
     @Override
     public boolean deleteFoodMenu(String foodMenuName) throws CustomException {
+        if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+        }
         String foodMenu = capitalizeFirstLetter(foodMenuName);
         int retrievedFoodMenuId = retrieveFoodMenu(foodMenu).getId();
         deleteAllFoodItemsFromMenu(retrievedFoodMenuId);
@@ -129,7 +149,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         return result;
     }
 
-    private static String capitalizeFirstLetter(String input) {
+    private String capitalizeFirstLetter(String input) {
         StringBuilder result = new StringBuilder();
         String[] words = input.split("\\s");
         for (String word : words) {
@@ -143,7 +163,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         }
         return result.toString();
     }
-    private static String getCustomStringRepresentation(List<AvailableDay> list) {
+    private String getCustomStringRepresentation(List<AvailableDay> list) {
         StringBuilder result = new StringBuilder(String.valueOf(list.get(0)).toUpperCase());
         for (int i = 1; i < list.size(); i++) {
             result.append(",").append(String.valueOf(list.get(i)).toUpperCase());
@@ -151,4 +171,9 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         return result.toString();
     }
 
+    private boolean validateFoodMenuName(String foodItemName){
+        Pattern pattern = Pattern.compile("[^a-zA-Z0-9_-]");
+        Matcher matcher = pattern.matcher(foodItemName);
+        return matcher.find();
+    }
 }

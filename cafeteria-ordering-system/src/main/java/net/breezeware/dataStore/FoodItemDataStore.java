@@ -125,6 +125,9 @@ public class FoodItemDataStore {
                 foodItems.add(foodItem);
             }
             result.close();
+            if(foodItems.isEmpty()){
+                throw new CustomException("Food Items Storage is Empty!");
+            }
             return foodItems;
         } catch (SQLException e){
             throw new CustomException("Couldn't Retrieve Food Items");

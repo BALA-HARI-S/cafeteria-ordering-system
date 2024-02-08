@@ -137,6 +137,9 @@ public class FoodMenuDataStore {
                 foodMenuList.add(queryFoodMenu(result.getString(COLUMN_MENU_NAME)));
             }
             result.close();
+            if(foodMenuList.isEmpty()){
+                throw new CustomException("Food Menu Storage is Empty!");
+            }
             return foodMenuList;
         } catch (SQLException e){
             throw new CustomException("Couldn't Query Food Menus. " + e.getMessage());

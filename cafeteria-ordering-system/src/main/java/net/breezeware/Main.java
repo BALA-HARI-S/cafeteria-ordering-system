@@ -15,8 +15,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
+
 
     private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation();
     private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation();
@@ -43,9 +45,6 @@ public class Main {
                     scanner.nextLine();
                     System.out.print("Food Item Name: ");
                     String foodItemName = scanner.nextLine();
-                    System.out.print("Food Item Quantity: ");
-                    int foodItemQuantity = scanner.nextInt();
-                    scanner.nextLine();
                     System.out.print("Food Item Price(₹): ");
                     double foodItemPrice = scanner.nextDouble();
                     try{
@@ -54,11 +53,15 @@ public class Main {
                                 _id | name | quantity | price | created | modified
                                 """+foodItemManager.retrieveFoodItem(foodItemName));
                     } catch (CustomException e){
-                        FoodItem foodItem = foodItemManager.createFoodItem(foodItemName, foodItemQuantity, foodItemPrice);
-                        System.out.println("""
+                        try{
+                            FoodItem foodItem = foodItemManager.createFoodItem(foodItemName, foodItemPrice);
+                            System.out.println("""
                                 Food Item Created
                                 _id | name | quantity | price | created | modified
                                 """+foodItem);
+                        } catch (CustomException em){
+                            System.out.println(em.getMessage());
+                        }
                     }
                 }
                 case 2 -> {
@@ -113,12 +116,8 @@ public class Main {
                     }
                     try{
                         List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(isOrderBy, isAscending? 1: 2, columnName);
-                        if(foodItems.isEmpty()){
-                            System.out.println("Food Items Storage is Empty!");
-                        } else {
-                            System.out.println("_id | name | quantity | price | created | modified");
-                            foodItems.forEach(System.out::println);
-                        }
+                        System.out.println("_id | name | quantity | price | created | modified");
+                        foodItems.forEach(System.out::println);
                     } catch (CustomException e){
                         System.out.println(e.getMessage());
                     }
@@ -192,13 +191,14 @@ public class Main {
                 }
                 case 5 ->{
                     System.out.println("Cafeteria Admin Operation: Delete Food Item");
-                    List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(true, 1, "_id");
-                    System.out.println("_id | name | quantity | price | created | modified");
-                    foodItems.forEach(System.out::println);
-                    scanner.nextLine();
-                    System.out.print("Which food-item do you want to remove(Food Item Name): ");
-                    String foodItemName = scanner.nextLine();
                     try{
+                        List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(true, 1, "_id");
+                        System.out.println("_id | name | quantity | price | created | modified");
+                        foodItems.forEach(System.out::println);
+                        scanner.nextLine();
+                        System.out.print("Which food-item do you want to remove(Food Item Name): ");
+                        String foodItemName = scanner.nextLine();
+
                         boolean result = foodItemManager.deleteFoodItem(foodItemName);
                         System.out.println(result? "Food Item successfully Removed!" : "No such Food Item");
                     } catch (CustomException e){
@@ -264,11 +264,16 @@ public class Main {
                                 _id | name | available_days | created | modified
                                 """+ foodMenuManager.retrieveFoodMenu(foodMenuName));
                     } catch (CustomException e){
-                        FoodMenu newFoodMenu = foodMenuManager.createFoodMenu(foodMenuName, convertStringTOList(foodAvailableDays));
-                        System.out.println("""
+                        try{
+                            FoodMenu newFoodMenu = foodMenuManager.createFoodMenu(foodMenuName,
+                                    convertAndValidateAvailableDays(foodAvailableDays));
+                            System.out.println("""
                                 Food Item Created
                                 _id | name | available_days | created | modified
                                 """+newFoodMenu);
+                        } catch (CustomException em){
+                            System.out.println(em.getMessage());
+                        }
                     }
                 }
                 case 8 -> {
@@ -435,7 +440,7 @@ public class Main {
 
                                     System.out.print("Enter a New Food Menu Available Days(Day1,Day2,..): ");
                                     String newFoodMenuAvailableDays = scanner.nextLine();
-                                    List<AvailableDay> availableDays = convertStringTOList(newFoodMenuAvailableDays);
+                                    List<AvailableDay> availableDays = convertAndValidateAvailableDays(newFoodMenuAvailableDays);
                                     FoodMenu updatedMenu = foodMenuManager.updateFoodMenuAvailableDay(availableDays, foodMenuName);
                                     System.out.println("""
                                                 Food Menu Available Day Updated!
@@ -482,6 +487,10 @@ public class Main {
                 case 15 -> {
                     System.out.println("Customer Operation : Create Order \nProvide Order Details");
                     scanner.nextLine();
+                    int orderedFoodItemQuantity = 0;
+                    int balanceFoodItem = 0;
+                    double totalCost = 0.00;
+                    FoodItem foodMenuItem = new FoodItem();
                     try{
                         System.out.println("Select Food Items to Add to Order");
                         List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
@@ -493,18 +502,18 @@ public class Main {
                             }
                         }
                         HashMap<String, Integer> foodItemsQuantityMap = new HashMap<>();
-                        double totalCost = 0.00;
                         boolean isAddingFoodItems = true;
                         while(isAddingFoodItems){
                             System.out.print("Food Item Name: ");
                             String foodItemName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                             System.out.print("Food Item Quantity: ");
                             int foodItemQuantity = scanner.nextInt();
+                            orderedFoodItemQuantity = foodItemQuantity;
                             try{
                                 FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                                 for(FoodMenu menu: foodMenuOfTheDay){
-                                    FoodItem foodMenuItem = foodMenuManager.retrieveFoodMenuItem(menu.getId(), foodItem.getId());
-                                    if(foodItemQuantity > foodMenuItem.getQuantity() && foodMenuItem.getQuantity() > 0){
+                                    foodMenuItem = foodMenuManager.retrieveFoodMenuItem(menu.getId(), foodItem.getId());
+                                    if(foodItemQuantity > 0 && foodItemQuantity < foodMenuItem.getQuantity() && foodMenuItem.getQuantity() > 0){
                                         if(foodItemsQuantityMap.containsKey(foodMenuItem.getName())){
                                             System.out.print("You have this food item already in orders list" +
                                                     "\nDo you want to update its quantity?(Yes/No): ");
@@ -513,19 +522,21 @@ public class Main {
                                             if (updateFoodItemQuantity.toLowerCase().charAt(0) == 'y') {
                                                 foodItemsQuantityMap.put(foodItem.getName(), foodItemsQuantityMap.get(foodItem.getName()) + foodItemQuantity);
                                                 totalCost += foodItem.getPrice() * foodItemQuantity;
-                                                foodItemManager.updateFoodItemQuantity(foodMenuItem.getQuantity() - foodItemQuantity,foodMenuItem.getName());
+                                                balanceFoodItem = foodMenuItem.getQuantity() - foodItemQuantity;
+                                                foodItemManager.updateFoodItemQuantity(balanceFoodItem,foodMenuItem.getName());
                                                 System.out.printf("\nFood Item | Quantity | Total Cost%n%s    %d    %.2f%nFood Item Quantity Updated%n", foodItem.getName()
                                                         ,foodItemsQuantityMap.get(foodItem.getName()), foodItemsQuantityMap.get(foodItem.getName()) * foodMenuItem.getPrice());
                                             }
                                         } else {
                                             foodItemsQuantityMap.put(foodMenuItem.getName(), foodItemQuantity);
                                             totalCost += foodMenuItem.getPrice() * foodItemQuantity;
-                                            foodItemManager.updateFoodItemQuantity(foodMenuItem.getQuantity() - foodItemQuantity,foodMenuItem.getName());
-                                            System.out.println("Food Item Added to Orders List");
+                                            balanceFoodItem = foodMenuItem.getQuantity() - foodItemQuantity;
+                                            foodItemManager.updateFoodItemQuantity(balanceFoodItem,foodMenuItem.getName());
                                             scanner.nextLine();
                                         }
                                     } else {
                                         System.out.println("Not Enough Food Items Left. Please Choose Different Quantity or Food Item!");
+                                        scanner.nextLine();
                                     }
 
                                 }
@@ -543,13 +554,12 @@ public class Main {
                         String deliveryLocation = scanner.nextLine();
                         System.out.print("Enter Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
                         String deliveryDateTime = scanner.nextLine();
-                        if (isDateTimeFormatValid(deliveryDateTime)) {
-                            System.out.println("Input date-time does not match the pattern.");
-                            return;
-                        }
+                        isDateTimeFormatValid(deliveryDateTime);
                         placeOrderManager.createOrder(foodItemsQuantityMap, totalCost, deliveryLocation, deliveryDateTime);
                         System.out.println("Order Created!");
                     } catch (CustomException e){
+                        int restoreFoodItemQuantity = balanceFoodItem + orderedFoodItemQuantity;
+                        foodItemManager.updateFoodItemQuantity(restoreFoodItemQuantity, foodMenuItem.getName());
                         System.out.println(e.getMessage());
                     }
                 }
@@ -665,20 +675,20 @@ public class Main {
                                                         if(foodItemQuantity <= 0){
                                                             System.out.println("Please provide valid quantity value");
                                                         } else if(foodItemQuantity == cartFoodItems.get(foodItem.getName())) {
-                                                            placeOrderManager.deleteCartOrderFoodItem(cartOrderId, foodItemName);
                                                             foodItemManager.updateFoodItemQuantity(
                                                                     foodItem.getQuantity() + cartFoodItems.get(foodItem.getName()),
                                                                     foodItem.getName());
+                                                            double removedFoodItemsCost = foodItem.getPrice() * foodItemQuantity;
                                                             placeOrderManager.updateCartOrderTotalCost(cartOrderId,
-                                                                    placeOrderManager.retrieveOrder(cartOrderId).getTotalCost() -
-                                                                            foodItem.getPrice() * cartFoodItems.get(foodItem.getName()));
+                                                                    placeOrderManager.retrieveOrder(cartOrderId).getTotalCost() - removedFoodItemsCost);
+                                                            placeOrderManager.deleteCartOrderFoodItem(cartOrderId, foodItemName);
                                                             System.out.println("Food Item Removed From this Cart Order");
                                                         } else {
                                                             placeOrderManager.updateCartOrderFoodItemQuantity(cartOrderId, foodItem.getName(),
                                                                     cartFoodItems.get(foodItem.getName())-foodItemQuantity);
+                                                            double removedFoodItemsCost = foodItem.getPrice() * foodItemQuantity;
                                                             placeOrderManager.updateCartOrderTotalCost(cartOrderId,
-                                                                    placeOrderManager.retrieveOrder(cartOrderId).getTotalCost() -
-                                                                            foodItem.getPrice() * cartFoodItems.get(foodItem.getName()));
+                                                                    placeOrderManager.retrieveOrder(cartOrderId).getTotalCost() - removedFoodItemsCost);
                                                             System.out.println("Food Item Quantity Updated");
                                                         }
                                                         printOrder(cartOrders);
@@ -708,12 +718,9 @@ public class Main {
                                             System.out.print("Enter Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
                                             scanner.nextLine();
                                             String newDeliveryDateTime = scanner.nextLine();
-                                            if (isDateTimeFormatValid(newDeliveryDateTime)) {
-                                                System.out.println("Input date-time does not match the pattern.");
-                                            } else {
-                                                placeOrderManager.updateDeliveryDateAndTime(cartOrderId, newDeliveryDateTime);
-                                                System.out.println("Delivery Date And Time Updated");
-                                            }
+                                            isDateTimeFormatValid(newDeliveryDateTime);
+                                            placeOrderManager.updateDeliveryDateAndTime(cartOrderId, newDeliveryDateTime);
+                                            System.out.println("Delivery Date And Time Updated");
                                         } catch (CustomException e){
                                             System.out.println(e.getMessage());
                                         }
@@ -954,12 +961,25 @@ public class Main {
         System.out.println("_____________________________________________________");
     }
 
-    private static List<AvailableDay> convertStringTOList(String availableDay){
+    private static List<AvailableDay> convertAndValidateAvailableDays(String availableDay) throws CustomException {
         List<String> availableDays = Arrays.asList(availableDay.toUpperCase().split(","));
+        for (String day : availableDays) {
+            if (!isValidDay(day.trim())) {
+                throw new CustomException("Invalid input: " + day.trim());
+            }
+        }
         return availableDays.stream()
                 .map(String::trim)
                 .map(AvailableDay::valueOf)
                 .toList();
+    }
+    private static boolean isValidDay(String day) {
+        try {
+            AvailableDay.valueOf(day);
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
     private static String getCustomStringRepresentation(List<AvailableDay> list) {
         StringBuilder result = new StringBuilder(String.valueOf(list.get(0)));
@@ -969,20 +989,13 @@ public class Main {
         return result.toString();
     }
 
-    private static boolean isDateTimeFormatValid(String inputDateTime) {
+    private static void isDateTimeFormatValid(String inputDateTime) throws CustomException {
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
             LocalDateTime parse = LocalDateTime.parse(inputDateTime, formatter);
-            return false;
         } catch (DateTimeParseException e) {
-            return true;
+            throw new CustomException("Input date-time does not match the pattern.");
         }
-    }
-
-    private  static String formatDateTimeInstant(Instant instant){
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
-        return  localDateTime.format(formatter);
     }
 
     private static String capitalizeFirstLetter(String input) {

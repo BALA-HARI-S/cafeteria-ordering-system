@@ -10,17 +10,23 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FoodItemManagerImplementation implements FoodItemManager{
 
     private final FoodItemDataStore foodItemStore = new FoodItemDataStore();
 
     @Override
-    public FoodItem createFoodItem(String name, int quantity, double price) throws CustomException {
+    public FoodItem createFoodItem(String name, double price) throws CustomException {
         String foodItemName = capitalizeFirstLetter(name);
+        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+            throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
+        }
         foodItemStore.openConnection();
         Instant now = Instant.now();
-        FoodItem newFoodItem = new FoodItem(foodItemName,quantity,price, now, now);
+        int initialQuantity = 0;
+        FoodItem newFoodItem = new FoodItem(foodItemName,initialQuantity,price, now, now);
         LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
         LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
 
@@ -32,6 +38,9 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem retrieveFoodItem(String foodItemName) throws CustomException {
+        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+            throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
+        }
         foodItemStore.openConnection();
         FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
         foodItemStore.closeConnection();
@@ -48,6 +57,9 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem updateFoodItemName(String newName, String foodItemName) throws CustomException {
+        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty() || validateFoodItemName(newName) || newName.isEmpty()){
+            throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
+        }
         foodItemStore.openConnection();
         FoodItem updatedFoodItem = foodItemStore
                 .updateFoodItemName(capitalizeFirstLetter(newName), capitalizeFirstLetter(foodItemName));
@@ -57,6 +69,9 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem updateFoodItemQuantity(int quantity, String foodItemName) throws CustomException {
+        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+            throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
+        }
         foodItemStore.openConnection();
         FoodItem alreadyExistFoodItem = new FoodItem();
         try{
@@ -80,6 +95,9 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem updateFoodItemPrice(double price, String foodItemName) throws CustomException {
+        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+            throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
+        }
         foodItemStore.openConnection();
         FoodItem updatedFoodItem = foodItemStore
                 .updateFoodItemPrice(price, capitalizeFirstLetter(foodItemName));
@@ -89,6 +107,9 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public boolean deleteFoodItem(String foodItemName) throws CustomException {
+        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+            throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
+        }
         foodItemStore.openConnection();
         boolean result = foodItemStore.deleteFoodItem(capitalizeFirstLetter(foodItemName));
         foodItemStore.closeConnection();
@@ -110,4 +131,9 @@ public class FoodItemManagerImplementation implements FoodItemManager{
         return result.toString();
     }
 
+    private boolean validateFoodItemName(String foodItemName){
+        Pattern pattern = Pattern.compile("[^a-zA-Z]");
+        Matcher matcher = pattern.matcher(foodItemName);
+        return matcher.find();
+    }
 }
