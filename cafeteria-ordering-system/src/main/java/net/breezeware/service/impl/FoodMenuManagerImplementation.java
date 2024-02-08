@@ -55,9 +55,17 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     @Override
     public List<FoodItem> retrieveFoodMenuItems(int foodMenuId) throws CustomException {
         foodMenuStore.openConnection();
-        List<FoodItem> foodItems = foodMenuStore.getFoodMenuItems(foodMenuId);
+        List<FoodItem> foodItems = foodMenuStore.queryFoodMenuItems(foodMenuId);
         foodMenuStore.closeConnection();
         return foodItems;
+    }
+
+    @Override
+    public FoodItem retrieveFoodMenuItem(int foodMenuId, int foodItemId) throws CustomException {
+        foodMenuStore.openConnection();
+        FoodItem foodItem = foodMenuStore.queryFoodMenuItem(foodMenuId, foodItemId);
+        foodMenuStore.closeConnection();
+        return foodItem;
     }
 
     @Override

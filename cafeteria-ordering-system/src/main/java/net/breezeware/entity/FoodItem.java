@@ -14,6 +14,11 @@ public class FoodItem {
     private Instant modified;
 
     public FoodItem(){}
+    public FoodItem(int id, String name, int quantity){
+        this.id = id;
+        this.name = name;
+        this.quantity = quantity;
+    }
     public FoodItem(String name, int quantity, double price, Instant created, Instant modified){
         this.name = name;
         this.quantity = quantity;

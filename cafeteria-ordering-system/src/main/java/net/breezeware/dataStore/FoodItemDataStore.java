@@ -11,28 +11,28 @@ import java.util.List;
 import java.util.Objects;
 
 public class FoodItemDataStore {
-    public static final String DB_NAME = "cos";
-    public static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/" + DB_NAME;
-    public static final String DB_USER = "cos_usr";
-    public static final String DB_PASSWORD= "P@ssw0rd";
-    public static final String TABLE_FOOD_ITEMS = "food_items";
-    public static final String COLUMN_FOOD_ID = "_id";
-    public static final String COLUMN_FOOD_NAME = "name";
-    public static final String COLUMN_FOOD_QUANTITY = "quantity";
-    public static final String COLUMN_FOOD_PRICE = "price";
-    public static final String COLUMN_FOOD_CREATED = "created";
-    public static final String COLUMN_FOOD_MODIFIED = "modified";
+    private static final String DB_NAME = "cos";
+    private static final String CONNECTION_STRING = "jdbc:postgresql://localhost:5432/" + DB_NAME;
+    private static final String DB_USER = "cos_usr";
+    private static final String DB_PASSWORD= "P@ssw0rd";
+    private static final String TABLE_FOOD_ITEMS = "food_items";
+    private static final String COLUMN_FOOD_ID = "_id";
+    private static final String COLUMN_FOOD_NAME = "name";
+    private static final String COLUMN_FOOD_QUANTITY = "quantity";
+    private static final String COLUMN_FOOD_PRICE = "price";
+    private static final String COLUMN_FOOD_CREATED = "created";
+    private static final String COLUMN_FOOD_MODIFIED = "modified";
 
-    public static final String INSERT_FOOD_ITEM = "INSERT INTO " + TABLE_FOOD_ITEMS +
+    private static final String INSERT_FOOD_ITEM = "INSERT INTO " + TABLE_FOOD_ITEMS +
             "(" + COLUMN_FOOD_NAME + "," + COLUMN_FOOD_QUANTITY + "," + COLUMN_FOOD_PRICE + "," +
             COLUMN_FOOD_CREATED + "," + COLUMN_FOOD_MODIFIED + ") VALUES(?, ?, ?, ?, ?)";
-    public static final String QUERY_FOOD_ITEM = "SELECT * FROM " + TABLE_FOOD_ITEMS + " WHERE " + COLUMN_FOOD_NAME + " = ?";
-    public static final String UPDATE_FOOD_ITEM_NAME = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_NAME + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
-    public static final String UPDATE_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_QUANTITY + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
-    public static final String UPDATE_FOOD_ITEM_PRICE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_PRICE + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
-    public static final String UPDATE_FOOD_ITEM_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_MODIFIED + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
-    public static final String DELETE_FOOD_ITEM = "DELETE FROM " + TABLE_FOOD_ITEMS + " WHERE " + COLUMN_FOOD_NAME + " = ?";
-    public static final int ORDER_BY_ASC = 1;
+    private static final String QUERY_FOOD_ITEM = "SELECT * FROM " + TABLE_FOOD_ITEMS + " WHERE " + COLUMN_FOOD_NAME + " = ?";
+    private static final String UPDATE_FOOD_ITEM_NAME = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_NAME + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    private static final String UPDATE_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_QUANTITY + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    private static final String UPDATE_FOOD_ITEM_PRICE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_PRICE + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    private static final String UPDATE_FOOD_ITEM_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_ITEMS + " SET " + COLUMN_FOOD_MODIFIED + " = ? WHERE " + COLUMN_FOOD_NAME + " = ?" ;
+    private static final String DELETE_FOOD_ITEM = "DELETE FROM " + TABLE_FOOD_ITEMS + " WHERE " + COLUMN_FOOD_NAME + " = ?";
+    private static final int ORDER_BY_ASC = 1;
     private Connection connection;
 
 
