@@ -113,8 +113,12 @@ public class Main {
                     }
                     try{
                         List<FoodItem> foodItems = foodItemManager.retrieveAllFoodItems(isOrderBy, isAscending? 1: 2, columnName);
-                        System.out.println("_id | name | quantity | price | created | modified");
-                        foodItems.forEach(System.out::println);
+                        if(foodItems.isEmpty()){
+                            System.out.println("Food Items Storage is Empty!");
+                        } else {
+                            System.out.println("_id | name | quantity | price | created | modified");
+                            foodItems.forEach(System.out::println);
+                        }
                     } catch (CustomException e){
                         System.out.println(e.getMessage());
                     }
