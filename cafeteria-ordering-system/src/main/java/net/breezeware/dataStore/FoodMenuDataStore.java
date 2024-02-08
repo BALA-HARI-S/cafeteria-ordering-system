@@ -27,7 +27,7 @@ public class FoodMenuDataStore {
     private static final String COLUMN_MENU_CREATED = "created";
     private static final String COLUMN_MENU_MODIFIED = "modified";
 
-    private static final String TABLE_FOOD_MENU_ITEMS = "food_menu_items";
+    private static final String TABLE_FOOD_MENU_ITEMS_MAP = "food_menu_items_map";
     private static final String COLUMN_FOOD_MENU_ID = "food_menu_id";
     private static final String COLUMN_FOOD_ITEM_ID = "food_item_id";
 
@@ -46,17 +46,17 @@ public class FoodMenuDataStore {
 
 
     private static final String QUERY_FOOD_MENU_ITEMS = "SELECT " + COLUMN_FOOD_ITEM_NAME + " FROM " + TABLE_FOOD_ITEMS +
-            " INNER JOIN " + TABLE_FOOD_MENU_ITEMS + " ON " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_ITEM_ID  + "="
-            +  TABLE_FOOD_ITEMS + "." + COLUMN_FOOD_ID + " WHERE " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_MENU_ID + "=?";
+            " INNER JOIN " + TABLE_FOOD_MENU_ITEMS_MAP + " ON " + TABLE_FOOD_MENU_ITEMS_MAP + "." + COLUMN_FOOD_ITEM_ID  + "="
+            +  TABLE_FOOD_ITEMS + "." + COLUMN_FOOD_ID + " WHERE " + TABLE_FOOD_MENU_ITEMS_MAP + "." + COLUMN_FOOD_MENU_ID + "=?";
 
     private static final String QUERY_FOOD_MENU_ITEM = "SELECT " + COLUMN_FOOD_ITEM_NAME + " FROM " + TABLE_FOOD_ITEMS +
-            " INNER JOIN " + TABLE_FOOD_MENU_ITEMS + " ON " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_ITEM_ID  + "="
-            +  TABLE_FOOD_ITEMS + "." + COLUMN_FOOD_ID + " WHERE " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_MENU_ID
-            + "=? AND " + TABLE_FOOD_MENU_ITEMS + "." + COLUMN_FOOD_ITEM_ID + " =?";
-    private static final String INERT_FOOD_ITEM_TO_MENU = "INSERT INTO " + TABLE_FOOD_MENU_ITEMS + "(" + COLUMN_FOOD_MENU_ID
+            " INNER JOIN " + TABLE_FOOD_MENU_ITEMS_MAP + " ON " + TABLE_FOOD_MENU_ITEMS_MAP + "." + COLUMN_FOOD_ITEM_ID  + "="
+            +  TABLE_FOOD_ITEMS + "." + COLUMN_FOOD_ID + " WHERE " + TABLE_FOOD_MENU_ITEMS_MAP + "." + COLUMN_FOOD_MENU_ID
+            + "=? AND " + TABLE_FOOD_MENU_ITEMS_MAP + "." + COLUMN_FOOD_ITEM_ID + " =?";
+    private static final String INERT_FOOD_ITEM_TO_MENU = "INSERT INTO " + TABLE_FOOD_MENU_ITEMS_MAP + "(" + COLUMN_FOOD_MENU_ID
             + "," + COLUMN_FOOD_ITEM_ID + ") VALUES( ?, ?)";
-    private static final String REMOVE_FOOD_ITEM_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS + " WHERE " + COLUMN_FOOD_MENU_ID + " = ? AND " + COLUMN_FOOD_ITEM_ID + " = ?";
-    private static final String REMOVE_ALL_FOOD_ITEMS_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS + " WHERE " + COLUMN_FOOD_MENU_ID + " = ?";
+    private static final String REMOVE_FOOD_ITEM_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS_MAP + " WHERE " + COLUMN_FOOD_MENU_ID + " = ? AND " + COLUMN_FOOD_ITEM_ID + " = ?";
+    private static final String REMOVE_ALL_FOOD_ITEMS_FROM_MENU = "DELETE FROM " + TABLE_FOOD_MENU_ITEMS_MAP + " WHERE " + COLUMN_FOOD_MENU_ID + " = ?";
     public static final String UPDATE_FOOD_MENU_MODIFIED_DATE = "UPDATE " + TABLE_FOOD_MENU + " SET " + COLUMN_MENU_MODIFIED + " = ? WHERE " + COLUMN_MENU_NAME + " = ?" ;
     private static final int ORDER_BY_ASC = 1;
 

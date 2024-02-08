@@ -18,7 +18,7 @@ public class OrderDataStore {
     private static final String DB_USER = "cos_usr";
     private static final String DB_PASSWORD = "P@ssw0rd";
     private static final String TABLE_ORDERS = "orders";
-    private static final String TABLE_ORDERED_FOOD_ITEMS = "ordered_food_items";
+    private static final String TABLE_ORDER_FOOD_ITEMS_MAP = "order_food_items_map";
     private static final String TABLE_DELIVERY = "delivery";
 
     private static final String COLUMN_ORDER_ORDER_ID = "_id";
@@ -44,16 +44,16 @@ public class OrderDataStore {
     private static final String UPDATE_CART_ORDER_TOTAL_COST = "UPDATE " + TABLE_ORDERS + " SET " +
             COLUMN_ORDER_TOTAL_COST + " = ? WHERE " + COLUMN_ORDER_ORDER_ID + " = ?";
 
-    private static final String INSERT_INTO_ORDERED_FOOD_ITEMS = "INSERT INTO " + TABLE_ORDERED_FOOD_ITEMS + "(" +
+    private static final String INSERT_INTO_ORDERED_FOOD_ITEMS = "INSERT INTO " + TABLE_ORDER_FOOD_ITEMS_MAP + "(" +
             COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + "," + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME + "," +
             COLUMN_ORDERED_FOOD_ITEMS_QUANTITY + ") VALUES(?,?,?)";
     private static final String QUERY_ORDERED_FOOD_ITEMS = "SELECT " + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME +
-            "," + COLUMN_ORDERED_FOOD_ITEMS_QUANTITY + " FROM " + TABLE_ORDERED_FOOD_ITEMS + " WHERE " +
+            "," + COLUMN_ORDERED_FOOD_ITEMS_QUANTITY + " FROM " + TABLE_ORDER_FOOD_ITEMS_MAP + " WHERE " +
             COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + " =?";
 
-    private static final String DELETE_FROM_ORDERED_FOOD_ITEMS = "DELETE FROM " + TABLE_ORDERED_FOOD_ITEMS + " WHERE " +
+    private static final String DELETE_FROM_ORDERED_FOOD_ITEMS = "DELETE FROM " + TABLE_ORDER_FOOD_ITEMS_MAP + " WHERE " +
             COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + " = ? AND " + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME + " = ?";
-    private static final String UPDATE_ORDERED_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_ORDERED_FOOD_ITEMS + " SET " + COLUMN_ORDERED_FOOD_ITEMS_QUANTITY +
+    private static final String UPDATE_ORDERED_FOOD_ITEM_QUANTITY = "UPDATE " + TABLE_ORDER_FOOD_ITEMS_MAP + " SET " + COLUMN_ORDERED_FOOD_ITEMS_QUANTITY +
             " = ? WHERE " + COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + " = ? AND " + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME + " = ?";
 
     private static final String INSERT_INTO_DELIVERY = "INSERT INTO " + TABLE_DELIVERY + "(" + COLUMN_DELIVERY_ORDER_ID +
