@@ -1,5 +1,6 @@
 package net.breezeware;
 
+import net.breezeware.dataStore.FoodItemDataStore;
 import net.breezeware.entity.AvailableDay;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 public class Main {
 
 
-    private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation();
+    private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation(new FoodItemDataStore());
     private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation();
     private  static final PlaceOrderManager placeOrderManager = new PlaceOrderManagerImplementation();
     private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation();

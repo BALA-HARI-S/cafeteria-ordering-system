@@ -61,7 +61,7 @@ public class FoodMenuDataStore {
     private static final int ORDER_BY_ASC = 1;
 
     private Connection connection;
-    private final FoodItemManager foodItemManager = new FoodItemManagerImplementation();
+    private final FoodItemManager foodItemManager = new FoodItemManagerImplementation(new FoodItemDataStore());
 
     public void openConnection() throws CustomException {
         try {

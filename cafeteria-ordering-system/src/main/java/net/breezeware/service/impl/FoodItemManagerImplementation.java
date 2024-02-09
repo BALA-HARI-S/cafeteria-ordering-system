@@ -15,14 +15,17 @@ import java.util.regex.Pattern;
 
 public class FoodItemManagerImplementation implements FoodItemManager{
 
-    private final FoodItemDataStore foodItemStore = new FoodItemDataStore();
+    private final FoodItemDataStore foodItemStore;
+    public FoodItemManagerImplementation(FoodItemDataStore foodItemDataStore){
+        this.foodItemStore = foodItemDataStore;
+    }
 
     @Override
     public FoodItem createFoodItem(String name, double price) throws CustomException {
-        String foodItemName = capitalizeFirstLetter(name);
-        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+        if(validateFoodItemName(name) || name.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
+        String foodItemName = capitalizeFirstLetter(name);
         foodItemStore.openConnection();
         Instant now = Instant.now();
         int initialQuantity = 0;
