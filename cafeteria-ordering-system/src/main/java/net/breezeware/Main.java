@@ -1,31 +1,26 @@
 package net.breezeware;
 
 import net.breezeware.dataStore.FoodItemDataStore;
-import net.breezeware.entity.AvailableDay;
-import net.breezeware.entity.FoodItem;
-import net.breezeware.entity.FoodMenu;
-import net.breezeware.entity.Order;
+import net.breezeware.dataStore.FoodMenuDataStore;
+import net.breezeware.dataStore.OrderDataStore;
+import net.breezeware.entity.*;
 import net.breezeware.exception.CustomException;
 import net.breezeware.service.api.*;
 import net.breezeware.service.impl.*;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class Main {
 
 
     private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation(new FoodItemDataStore());
-    private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation();
-    private  static final PlaceOrderManager placeOrderManager = new PlaceOrderManagerImplementation();
-    private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation();
-    private static final OrderManager orderManager = new OrderManagerImplementation();
+    private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation(new FoodMenuDataStore());
+    private  static final PlaceOrderManager placeOrderManager = new PlaceOrderManagerImplementation(new OrderDataStore());
+    private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation(new OrderDataStore());
+    private static final OrderManager orderManager = new OrderManagerImplementation(new OrderDataStore());
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws CustomException {
@@ -567,7 +562,7 @@ public class Main {
                 case 16 -> {
                     System.out.println("Customer Operation : View Cart");
                     try{
-                        List<Order> cartOrders = placeOrderManager.retrieveCartOrders();
+                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CART);
                         if(cartOrders.isEmpty()){
                             System.out.println("Your Cart is Empty!");
                         } else {
@@ -581,7 +576,7 @@ public class Main {
                     System.out.println("Customer Operation: Edit Order");
                     System.out.println("Editing Food Items in Cart");
                     try{
-                        List<Order> cartOrders = placeOrderManager.retrieveCartOrders();
+                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CART);
                         if(cartOrders.isEmpty()){
                             System.out.println("Your Cart is Empty!");
                         } else {
@@ -739,7 +734,7 @@ public class Main {
                 case 18 -> {
                     System.out.println("Customer Operation : Confirm Order");
                     try{
-                        List<Order> cartOrders = placeOrderManager.retrieveCartOrders();
+                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CART);
                         if(cartOrders.isEmpty()){
                             System.out.println("Your Cart is Empty!");
                         } else {
@@ -756,7 +751,7 @@ public class Main {
                 case 19 -> {
                     System.out.println("Customer Operation  : View Confirmed Orders");
                     try{
-                        List<Order> confirmedOrders = placeOrderManager.retrieveConfirmedOrders();
+                        List<Order> confirmedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
                         if(confirmedOrders.isEmpty()){
                             System.out.println("Confirmed Orders is Empty!");
                         } else {
@@ -769,7 +764,7 @@ public class Main {
                 case 20 -> {
                     System.out.println("Customer Operation : Cancel the Order");
                     try{
-                        List<Order> cartOrders = placeOrderManager.retrieveConfirmedOrders();
+                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
                         if(cartOrders.isEmpty()){
                             System.out.println("There are no Orders Placed yet!");
                         } else {
@@ -786,7 +781,7 @@ public class Main {
                 case 21 -> {
                     System.out.println("Customer Operation  : View Cancelled Orders");
                     try{
-                        List<Order> cancelledOrders = placeOrderManager.retrieveCancelledOrders();
+                        List<Order> cancelledOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CANCELLED);
                         if(cancelledOrders.isEmpty()){
                             System.out.println("Cancelled Orders is Empty!");
                         } else {
@@ -799,63 +794,47 @@ public class Main {
                 case 22 -> {
                     try {
                         System.out.println("Cafeteria staff : List Active Orders");
-                        List<Order> confirmedOrders = orderManager.retrieveActiveOrders();
-                        if(confirmedOrders.isEmpty()){
-                            System.out.println("Active Orders is Empty!");
-                        } else {
-                            printOrder(confirmedOrders);
-                        }
+                        List<Order> confirmedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_PREPARED);
+                        printOrder(confirmedOrders);
                     } catch (CustomException e){
-                        System.out.println(e.getMessage());
+                        System.out.println("Active " + e.getMessage());
                     }
 
                 }
                 case 23 -> {
                     System.out.println("Cafeteria staff : List Received Orders");
                     try {
-                        List<Order> receivedOrders = orderManager.retrieveReceivedOrders();
-                        if(receivedOrders.isEmpty()){
-                            System.out.println("Received Orders is Empty!");
-                        } else {
-                            printOrder(receivedOrders);
-                        }
+                        List<Order> receivedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
+                        printOrder(receivedOrders);
                     } catch (CustomException e){
-                        System.out.println(e.getMessage());
+                        System.out.println("Received " + e.getMessage());
                     }
 
                 }
                 case 24 -> {
                     System.out.println("Cafeteria staff : List Cancelled Orders");
                     try {
-                        List<Order> cancelledOrders = orderManager.retrieveCancelledOrders();
-                        if(cancelledOrders.isEmpty()){
-                            System.out.println("Cancelled Orders is Empty!");
-                        } else {
-                            printOrder(cancelledOrders);
-                        }
+                        List<Order> cancelledOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CANCELLED);
+                        printOrder(cancelledOrders);
                     } catch (CustomException e){
-                        System.out.println(e.getMessage());
+                        System.out.println("Cancelled " + e.getMessage());
                     }
 
                 }
                 case 25 -> {
                     System.out.println("Cafeteria staff : List Completed Orders");
                     try {
-                        List<Order> completedOrders = orderManager.retrieveCompletedOrders();
-                        if(completedOrders.isEmpty()){
-                            System.out.println("Completed Orders is Empty!");
-                        } else {
-                            printOrder(completedOrders);
-                        }
+                        List<Order> completedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_DELIVERED);
+                        printOrder(completedOrders);
                     } catch (CustomException e){
-                        System.out.println(e.getMessage());
+                        System.out.println("Delivered " + e.getMessage());
                     }
 
                 }
                 case 26 -> {
                     System.out.println("Cafeteria staff : Prepare Order");
                     try {
-                        List<Order> receivedOrders = orderManager.retrieveReceivedOrders();
+                        List<Order> receivedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
                         if(receivedOrders.isEmpty()){
                             System.out.println("Received Orders is Empty!");
                         } else {
@@ -866,7 +845,7 @@ public class Main {
                             System.out.println("""
                             Order Prepared!
                             _id  | total_cost |  order_status  |  created""");
-                            orderManager.retrieveActiveOrders().stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
+                            orderManager.retrieveOrders(OrderStatus.ORDER_PREPARED).stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
                         }
 
                     } catch (CustomException e){
@@ -878,7 +857,7 @@ public class Main {
                     System.out.println("Delivery Staff : Deliver Order");
                     try {
                         System.out.println("Cafeteria staff : List Active Orders");
-                        List<Order> confirmedOrders = orderManager.retrieveActiveOrders();
+                        List<Order> confirmedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_PREPARED);
                         if(confirmedOrders.isEmpty()){
                             System.out.println("Active Orders is Empty!");
                         } else {
@@ -889,7 +868,7 @@ public class Main {
                             System.out.println("""
                             Order Delivered!
                             _id  | total_cost |  order_status  |  created""");
-                            orderManager.retrieveCompletedOrders().stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
+                            orderManager.retrieveOrders(OrderStatus.ORDER_DELIVERED).stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
                         }
                     } catch (CustomException e){
                         System.out.println(e.getMessage());

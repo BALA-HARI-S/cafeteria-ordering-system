@@ -83,7 +83,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
             throw new CustomException(e.getMessage());
         }
         if(Objects.isNull(alreadyExistFoodItem)){
-            System.out.println("Food Item not available");
+            throw new CustomException("Food Item not available");
         } else {
             FoodItem updatedFoodItem = foodItemStore
                     .updateFoodItemQuantity(quantity, capitalizeFirstLetter(foodItemName));
@@ -135,7 +135,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     }
 
     private boolean validateFoodItemName(String foodItemName){
-        Pattern pattern = Pattern.compile("[^a-zA-Z]");
+        Pattern pattern = Pattern.compile("[^a-zA-Z ]");
         Matcher matcher = pattern.matcher(foodItemName);
         return matcher.find();
     }

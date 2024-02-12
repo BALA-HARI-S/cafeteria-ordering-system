@@ -216,7 +216,7 @@ public class OrderDataStore {
                 return updatedOrderStatus;
             } else {
                 resultSet.close();
-                throw new CustomException("Order not Found!. ");
+                throw new CustomException("Order not Found!");
             }
         } catch (SQLException e){
             throw new CustomException("Couldn't Update the Order Status. " + e.getMessage());

@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 public class Order {
     private int id;
@@ -14,6 +13,13 @@ public class Order {
     private Instant created;
 
     public Order(){}
+
+    public Order(int orderId, double totalCost, OrderStatus orderStatus, Instant created) {
+        this.id = orderId;
+        this.totalCost = totalCost;
+        this.orderStatus = orderStatus;
+        this.created = created;
+    }
     public Order(double totalCost, OrderStatus orderStatus, Instant created) {
         this.totalCost = totalCost;
         this.orderStatus = orderStatus;

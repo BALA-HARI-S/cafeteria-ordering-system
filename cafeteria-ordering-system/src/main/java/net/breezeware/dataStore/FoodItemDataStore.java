@@ -144,13 +144,15 @@ public class FoodItemDataStore {
                 updateFoodItemModifiedDate(newName);
                 return queryFoodItem(newName);
             }
-            return null;
+            else{
+                throw new CustomException("Couldn't Update Food Item Name");
+            }
         } catch (SQLException e){
             throw new CustomException("Couldn't Update Food Item Name");
         }
     }
 
-    public FoodItem updateFoodItemQuantity(int quantity, String foodItemName){
+    public FoodItem updateFoodItemQuantity(int quantity, String foodItemName) throws CustomException {
         try(PreparedStatement updateFoodItem = connection.prepareStatement(UPDATE_FOOD_ITEM_QUANTITY,
                 Statement.RETURN_GENERATED_KEYS)){
             updateFoodItem.setInt(1, quantity);
@@ -161,12 +163,11 @@ public class FoodItemDataStore {
                 updateFoodItemModifiedDate(foodItemName);
                 return queryFoodItem(foodItemName);
             }
-            return null;
+            else{
+                throw new CustomException("Couldn't Update Food Item Quantity");
+            }
         } catch (SQLException e){
-            System.out.println("Couldn't update food item quantity : " + e.getMessage());
-            return null;
-        } catch (CustomException e) {
-            throw new RuntimeException(e);
+            throw new CustomException("Couldn't Update Food Item Quantity");
         }
     }
     public FoodItem updateFoodItemPrice(double price, String foodItemName) throws CustomException {
@@ -180,7 +181,9 @@ public class FoodItemDataStore {
                 updateFoodItemModifiedDate(foodItemName);
                 return queryFoodItem(foodItemName);
             }
-            return null;
+            else{
+                throw new CustomException("Couldn't Update Food Item Price");
+            }
         } catch (SQLException e){
             throw new CustomException("Couldn't Update Food Item Price");
         }

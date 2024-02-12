@@ -155,8 +155,13 @@ public class FoodMenuDataStore {
                 String foodItemName = result.getString(COLUMN_FOOD_ITEM_NAME);
                 foodMenuItems.add(foodItemManager.retrieveFoodItem(foodItemName));
             }
-            result.close();
-            return foodMenuItems;
+            if(!foodMenuItems.isEmpty()){
+                result.close();
+                return foodMenuItems;
+            } else {
+                result.close();
+                throw new CustomException("There are no Items in the Menu");
+            }
         } catch (SQLException e){
             throw new CustomException("Couldn't Query Food Menu Items. " + e.getMessage());
         }
