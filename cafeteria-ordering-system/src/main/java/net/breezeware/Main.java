@@ -15,12 +15,16 @@ import java.util.*;
 
 public class Main {
 
+    private static final FoodItemDataStore foodItemDataStore = new FoodItemDataStore();
+    private static final FoodMenuDataStore foodMenuDataStore = new FoodMenuDataStore();
+    private static final OrderDataStore orderDataStore = new OrderDataStore();
 
-    private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation(new FoodItemDataStore());
-    private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation(new FoodMenuDataStore());
-    private  static final PlaceOrderManager placeOrderManager = new PlaceOrderManagerImplementation(new OrderDataStore());
-    private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation(new OrderDataStore());
-    private static final OrderManager orderManager = new OrderManagerImplementation(new OrderDataStore());
+    private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation(foodItemDataStore);
+    private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation(foodMenuDataStore);
+    private  static final PlaceOrderManager placeOrderManager = new PlaceOrderManagerImplementation(orderDataStore);
+    private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation(orderDataStore);
+    private static final OrderManager orderManager = new OrderManagerImplementation(orderDataStore);
+
     private static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) throws CustomException {
@@ -28,11 +32,21 @@ public class Main {
         boolean isApplicationRunning = true;
 
         do{
+            try{
+                openConnections();
+            } catch (CustomException e){
+                System.out.println(e.getMessage());
+            }
             cafeteriaAdminMenu();
             System.out.print("How can I help you (Choose any option): ");
             int option = scanner.nextInt();
             switch (option){
                 case 0 ->{
+                    try{
+                        closeConnections();
+                    } catch (CustomException e){
+                        System.out.println(e.getMessage());
+                    }
                     System.out.println("Exiting Application.....");
                     isApplicationRunning = false;
                 }
@@ -873,7 +887,6 @@ public class Main {
                     } catch (CustomException e){
                         System.out.println(e.getMessage());
                     }
-
                 }
             }
         } while (isApplicationRunning);
@@ -921,6 +934,18 @@ public class Main {
                 Press 0 to exit() Application.
                 """;
         System.out.println(cafeteriaOperations);
+    }
+
+    private static void openConnections() throws CustomException {
+        foodItemDataStore.openConnection();
+        foodMenuDataStore.openConnection();
+        orderDataStore.openConnection();
+    }
+
+    private static void closeConnections() throws CustomException {
+        foodItemDataStore.closeConnection();
+        foodMenuDataStore.closeConnection();
+        orderDataStore.closeConnection();
     }
 
     private static void printOrder(List<Order> orders) throws CustomException {

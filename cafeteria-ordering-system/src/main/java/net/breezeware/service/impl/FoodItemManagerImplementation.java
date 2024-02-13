@@ -26,17 +26,14 @@ public class FoodItemManagerImplementation implements FoodItemManager{
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
         String foodItemName = capitalizeFirstLetter(name);
-        foodItemStore.openConnection();
         Instant now = Instant.now();
         int initialQuantity = 0;
         FoodItem newFoodItem = new FoodItem(foodItemName,initialQuantity,price, now, now);
         LocalDateTime createdDateTime = LocalDateTime.ofInstant(newFoodItem.getCreated(), ZoneId.systemDefault());
         LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(newFoodItem.getModified(), ZoneId.systemDefault());
 
-        FoodItem foodItem = foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
+        return foodItemStore.insertFoodItem(newFoodItem.getName(), newFoodItem.getQuantity(),
                 newFoodItem.getPrice(), createdDateTime, modifiedDateTime);
-        foodItemStore.closeConnection();
-        return foodItem;
     }
 
     @Override
@@ -44,18 +41,12 @@ public class FoodItemManagerImplementation implements FoodItemManager{
         if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
-        foodItemStore.openConnection();
-        FoodItem foodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
-        foodItemStore.closeConnection();
-        return foodItem;
+        return foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
     }
 
     @Override
     public List<FoodItem> retrieveAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) throws CustomException {
-        foodItemStore.openConnection();
-        List<FoodItem> foodItems = foodItemStore.queryAllFoodItems(isOrderBy, sortOrder, columnName);
-        foodItemStore.closeConnection();
-        return foodItems;
+        return foodItemStore.queryAllFoodItems(isOrderBy, sortOrder, columnName);
     }
 
     @Override
@@ -63,11 +54,8 @@ public class FoodItemManagerImplementation implements FoodItemManager{
         if(validateFoodItemName(foodItemName) || foodItemName.isEmpty() || validateFoodItemName(newName) || newName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
-        foodItemStore.openConnection();
-        FoodItem updatedFoodItem = foodItemStore
+        return foodItemStore
                 .updateFoodItemName(capitalizeFirstLetter(newName), capitalizeFirstLetter(foodItemName));
-        foodItemStore.closeConnection();
-        return updatedFoodItem;
     }
 
     @Override
@@ -75,25 +63,24 @@ public class FoodItemManagerImplementation implements FoodItemManager{
         if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
-        foodItemStore.openConnection();
         FoodItem alreadyExistFoodItem = new FoodItem();
         try{
             alreadyExistFoodItem = foodItemStore.queryFoodItem(capitalizeFirstLetter(foodItemName));
         }catch (CustomException e){
             throw new CustomException(e.getMessage());
         }
+        FoodItem updatedFoodItem = new FoodItem();
         if(Objects.isNull(alreadyExistFoodItem)){
             throw new CustomException("Food Item not available");
         } else {
-            FoodItem updatedFoodItem = foodItemStore
+            updatedFoodItem = foodItemStore
                     .updateFoodItemQuantity(quantity, capitalizeFirstLetter(foodItemName));
             if(!Objects.isNull(updatedFoodItem)){
                 foodItemStore.closeConnection();
                 return updatedFoodItem;
             }
         }
-        foodItemStore.closeConnection();
-        return null;
+        return updatedFoodItem;
     }
 
     @Override
@@ -101,11 +88,8 @@ public class FoodItemManagerImplementation implements FoodItemManager{
         if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
-        foodItemStore.openConnection();
-        FoodItem updatedFoodItem = foodItemStore
+        return foodItemStore
                 .updateFoodItemPrice(price, capitalizeFirstLetter(foodItemName));
-        foodItemStore.closeConnection();
-        return updatedFoodItem;
     }
 
     @Override
@@ -113,10 +97,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
         if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
-        foodItemStore.openConnection();
-        boolean result = foodItemStore.deleteFoodItem(capitalizeFirstLetter(foodItemName));
-        foodItemStore.closeConnection();
-        return result;
+        return foodItemStore.deleteFoodItem(capitalizeFirstLetter(foodItemName));
     }
 
     private String capitalizeFirstLetter(String input) {

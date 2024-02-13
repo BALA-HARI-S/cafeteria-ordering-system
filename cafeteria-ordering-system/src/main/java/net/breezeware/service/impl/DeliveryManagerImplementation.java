@@ -14,9 +14,7 @@ public class DeliveryManagerImplementation implements DeliveryManager {
 
     @Override
     public boolean deliverOrder(int orderId) throws CustomException {
-        orderDataStore.openConnection();
         String orderStatus = orderDataStore.updateOrderStatus(orderId, OrderStatus.ORDER_DELIVERED.name());
-        orderDataStore.closeConnection();
         return OrderStatus.ORDER_DELIVERED.name().equals(orderStatus);
     }
 }

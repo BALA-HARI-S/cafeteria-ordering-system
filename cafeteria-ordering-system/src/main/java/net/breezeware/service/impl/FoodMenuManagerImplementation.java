@@ -31,10 +31,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         Instant instantNow = Instant.now();
         LocalDateTime createdDateTime = LocalDateTime.ofInstant(instantNow, ZoneId.systemDefault());
         LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(instantNow, ZoneId.systemDefault());
-        foodMenuStore.openConnection();
-        FoodMenu foodMenu = foodMenuStore.insertFoodMenu(menuName, getCustomStringRepresentation(availableDay),createdDateTime, modifiedDateTime);
-        foodMenuStore.closeConnection();
-        return foodMenu;
+        return foodMenuStore.insertFoodMenu(menuName, getCustomStringRepresentation(availableDay),createdDateTime, modifiedDateTime);
     }
 
     @Override
@@ -62,58 +59,37 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
-        foodMenuStore.openConnection();
-        FoodMenu foodMenu = foodMenuStore.queryFoodMenu(capitalizeFirstLetter(foodMenuName));
-        foodMenuStore.closeConnection();
-        return foodMenu;
+        return foodMenuStore.queryFoodMenu(capitalizeFirstLetter(foodMenuName));
     }
 
     @Override
     public List<FoodItem> retrieveFoodMenuItems(int foodMenuId) throws CustomException {
-        foodMenuStore.openConnection();
-        List<FoodItem> foodItems = foodMenuStore.queryFoodMenuItems(foodMenuId);
-        foodMenuStore.closeConnection();
-        return foodItems;
+        return foodMenuStore.queryFoodMenuItems(foodMenuId);
     }
 
     @Override
     public FoodItem retrieveFoodMenuItem(int foodMenuId, int foodItemId) throws CustomException {
-        foodMenuStore.openConnection();
-        FoodItem foodItem = foodMenuStore.queryFoodMenuItem(foodMenuId, foodItemId);
-        foodMenuStore.closeConnection();
-        return foodItem;
+        return foodMenuStore.queryFoodMenuItem(foodMenuId, foodItemId);
     }
 
     @Override
     public List<FoodMenu> retrieveAllFoodMenus(boolean isOrderBy, int sortOrder, String columnName) throws CustomException {
-        foodMenuStore.openConnection();
-        List<FoodMenu> foodMenuList = foodMenuStore.queryAllFoodMenu(isOrderBy, sortOrder, columnName);
-        foodMenuStore.closeConnection();
-        return foodMenuList;
+        return foodMenuStore.queryAllFoodMenu(isOrderBy, sortOrder, columnName);
     }
 
     @Override
     public boolean addFoodItemsToMenu(int foodMenuId, int foodItemId) throws CustomException {
-        foodMenuStore.openConnection();
-        boolean result = foodMenuStore.addFoodItemsToMenu(foodMenuId, foodItemId);
-        foodMenuStore.closeConnection();
-        return result;
+        return foodMenuStore.addFoodItemsToMenu(foodMenuId, foodItemId);
     }
 
     @Override
     public boolean deleteFoodItemFromMenu(int foodMenuId, int foodItemId) throws CustomException {
-        foodMenuStore.openConnection();
-        boolean result = foodMenuStore.deleteFoodItemFromMenu(foodMenuId, foodItemId);
-        foodMenuStore.closeConnection();
-        return result;
+        return foodMenuStore.deleteFoodItemFromMenu(foodMenuId, foodItemId);
     }
 
     @Override
     public boolean deleteAllFoodItemsFromMenu(int foodMenuId) throws CustomException {
-        foodMenuStore.openConnection();
-        boolean result = foodMenuStore.deleteAllFoodItemsFromMenu(foodMenuId);
-        foodMenuStore.closeConnection();
-        return result;
+        return foodMenuStore.deleteAllFoodItemsFromMenu(foodMenuId);
     }
 
     @Override
@@ -121,11 +97,8 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
-        foodMenuStore.openConnection();
-        FoodMenu foodMenu = foodMenuStore.updateFoodMenuName(
+        return foodMenuStore.updateFoodMenuName(
                 capitalizeFirstLetter(newName), capitalizeFirstLetter(foodMenuName));
-        foodMenuStore.closeConnection();
-        return foodMenu;
     }
 
     @Override
@@ -133,11 +106,8 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
-        foodMenuStore.openConnection();
-        FoodMenu foodMenu = foodMenuStore.updateFoodMenuAvailableDay(
+        return foodMenuStore.updateFoodMenuAvailableDay(
                 getCustomStringRepresentation(availableDays), capitalizeFirstLetter(foodMenuName));
-        foodMenuStore.closeConnection();
-        return foodMenu;
     }
 
     @Override
@@ -148,10 +118,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         String foodMenu = capitalizeFirstLetter(foodMenuName);
         int retrievedFoodMenuId = retrieveFoodMenu(foodMenu).getId();
         deleteAllFoodItemsFromMenu(retrievedFoodMenuId);
-        foodMenuStore.openConnection();
-        boolean result = foodMenuStore.deleteFoodMenu(foodMenu);
-        foodMenuStore.closeConnection();
-        return result;
+        return foodMenuStore.deleteFoodMenu(foodMenu);
     }
 
     private String capitalizeFirstLetter(String input) {
