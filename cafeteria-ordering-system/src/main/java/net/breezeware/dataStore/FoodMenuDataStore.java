@@ -4,7 +4,7 @@ import net.breezeware.entity.MenuAvailability;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
 import net.breezeware.exception.CustomException;
-import net.breezeware.service.api.FoodItemManager;
+import net.breezeware.service.api.ManageFoodItem;
 import net.breezeware.service.impl.FoodItemManagerImplementation;
 
 import java.sql.*;
@@ -61,7 +61,7 @@ public class FoodMenuDataStore {
     private static final int ORDER_BY_ASC = 1;
 
     private Connection connection;
-    private final FoodItemManager foodItemManager = new FoodItemManagerImplementation(new FoodItemDataStore());
+    private final ManageFoodItem foodItemManager = new FoodItemManagerImplementation(new FoodItemDataStore());
 
     public void openConnection() throws CustomException {
         try {

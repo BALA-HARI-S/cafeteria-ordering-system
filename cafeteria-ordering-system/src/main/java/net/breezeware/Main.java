@@ -7,7 +7,7 @@ import net.breezeware.entity.*;
 import net.breezeware.exception.CustomException;
 import net.breezeware.service.api.*;
 import net.breezeware.service.impl.*;
-import net.breezeware.utility.CosUtil;
+import net.breezeware.utils.CosUtil;
 
 import java.util.*;
 
@@ -17,10 +17,10 @@ public class Main {
     private static final FoodMenuDataStore foodMenuDataStore = new FoodMenuDataStore();
     private static final OrderDataStore orderDataStore = new OrderDataStore();
 
-    private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation(foodItemDataStore);
-    private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation(foodMenuDataStore);
-    private static final OrderManager orderManager = new OrderManagerImplementation(orderDataStore);
-    private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation(orderDataStore);
+    private static final ManageFoodItem foodItemManager = new FoodItemManagerImplementation(foodItemDataStore);
+    private static final ManageFoodMenu foodMenuManager = new FoodMenuManagerImplementation(foodMenuDataStore);
+    private static final ManageOrder orderManager = new OrderManagerImplementation(orderDataStore);
+    private static final ManageDelivery deliveryManger = new DeliveryManagerImplementation(orderDataStore);
 
     private static final Scanner scanner = new Scanner(System.in);
 

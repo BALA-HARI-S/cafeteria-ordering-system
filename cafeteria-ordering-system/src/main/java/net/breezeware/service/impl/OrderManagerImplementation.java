@@ -3,14 +3,14 @@ package net.breezeware.service.impl;
 import net.breezeware.dataStore.OrderDataStore;
 import net.breezeware.entity.*;
 import net.breezeware.exception.CustomException;
-import net.breezeware.service.api.OrderManager;
+import net.breezeware.service.api.ManageOrder;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
-public class OrderManagerImplementation implements OrderManager {
+public class OrderManagerImplementation implements ManageOrder {
 
     private final OrderDataStore orderDataStore;
 

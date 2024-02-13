@@ -7,7 +7,7 @@ import net.breezeware.exception.CustomException;
 
 import java.util.List;
 
-public interface FoodMenuManager {
+public interface ManageFoodMenu {
     /**
      * Create food menu object and add this new food menu to data store
      * @param name Name of the food menu

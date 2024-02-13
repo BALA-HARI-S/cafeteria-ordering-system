@@ -5,8 +5,8 @@ import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
 import net.breezeware.entity.MenuAvailability;
 import net.breezeware.exception.CustomException;
-import net.breezeware.service.api.FoodMenuManager;
-import net.breezeware.utility.CosUtil;
+import net.breezeware.service.api.ManageFoodMenu;
+import net.breezeware.utils.CosUtil;
 
 import java.time.*;
 import java.time.format.TextStyle;
@@ -14,9 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class FoodMenuManagerImplementation implements FoodMenuManager {
+public class FoodMenuManagerImplementation implements ManageFoodMenu {
     private final FoodMenuDataStore foodMenuStore;
 
+    private final String foodMenuNamePattern = "[^a-zA-Z0-9 ]";
     public FoodMenuManagerImplementation(FoodMenuDataStore foodMenuStore) {
         this.foodMenuStore = foodMenuStore;
     }
@@ -24,7 +25,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     @Override
     public FoodMenu createFoodMenu(String name, List<MenuAvailability> menuAvailability) throws CustomException {
         String menuName = CosUtil.capitalizeFirstLetter(name);
-        if(CosUtil.validateFoodMenuName(menuName) || menuName.isEmpty()){
+        if(CosUtil.validateName(menuName,foodMenuNamePattern) || menuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         Instant instantNow = Instant.now();
@@ -55,7 +56,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
 
     @Override
     public FoodMenu retrieveFoodMenu(String foodMenuName) throws CustomException {
-        if(CosUtil.validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+        if(CosUtil.validateName(foodMenuName,foodMenuNamePattern) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         return foodMenuStore.queryFoodMenu(CosUtil.capitalizeFirstLetter(foodMenuName));
@@ -93,7 +94,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
 
     @Override
     public FoodMenu updateFoodMenuName(String newName, String foodMenuName) throws CustomException {
-        if(CosUtil.validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+        if(CosUtil.validateName(foodMenuName,foodMenuNamePattern) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         return foodMenuStore.updateFoodMenuName(
@@ -102,7 +103,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
 
     @Override
     public FoodMenu updateFoodMenuAvailability(List<MenuAvailability> menuAvailability, String foodMenuName) throws CustomException {
-        if(CosUtil.validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+        if(CosUtil.validateName(foodMenuName,foodMenuNamePattern) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         return foodMenuStore.updateFoodMenuAvailableDay(
@@ -111,7 +112,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
 
     @Override
     public boolean deleteFoodMenu(String foodMenuName) throws CustomException {
-        if(CosUtil.validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
+        if(CosUtil.validateName(foodMenuName,foodMenuNamePattern) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         String foodMenu = CosUtil.capitalizeFirstLetter(foodMenuName);

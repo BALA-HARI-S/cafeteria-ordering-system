@@ -5,7 +5,7 @@ import net.breezeware.exception.CustomException;
 
 import java.util.List;
 
-public interface FoodItemManager {
+public interface ManageFoodItem {
 
     /**
      * Creates a new Food Item Object and add this new Food Item to Food Items Data Store

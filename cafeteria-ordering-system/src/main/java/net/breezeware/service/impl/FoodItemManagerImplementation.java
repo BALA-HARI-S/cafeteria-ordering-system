@@ -3,8 +3,8 @@ package net.breezeware.service.impl;
 import net.breezeware.dataStore.FoodItemDataStore;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.exception.CustomException;
-import net.breezeware.service.api.FoodItemManager;
-import net.breezeware.utility.CosUtil;
+import net.breezeware.service.api.ManageFoodItem;
+import net.breezeware.utils.CosUtil;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -12,16 +12,17 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Objects;
 
-public class FoodItemManagerImplementation implements FoodItemManager{
+public class FoodItemManagerImplementation implements ManageFoodItem {
 
     private final FoodItemDataStore foodItemStore;
+    private final String foodItemNamePattern = "[^a-zA-Z]";
     public FoodItemManagerImplementation(FoodItemDataStore foodItemDataStore){
         this.foodItemStore = foodItemDataStore;
     }
 
     @Override
     public FoodItem createFoodItem(String name, double price) throws CustomException {
-        if(CosUtil.validateFoodItemName(name) || name.isEmpty()){
+        if(CosUtil.validateName(name,foodItemNamePattern) || name.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
         String foodItemName = CosUtil.capitalizeFirstLetter(name);
@@ -37,7 +38,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem retrieveFoodItem(String foodItemName) throws CustomException {
-        if(CosUtil.validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+        if(CosUtil.validateName(foodItemName,foodItemNamePattern) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
         return foodItemStore.queryFoodItem(CosUtil.capitalizeFirstLetter(foodItemName));
@@ -50,7 +51,8 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem updateFoodItemName(String newName, String foodItemName) throws CustomException {
-        if(CosUtil.validateFoodItemName(foodItemName) || foodItemName.isEmpty() || CosUtil.validateFoodItemName(newName) || newName.isEmpty()){
+        if(CosUtil.validateName(foodItemName,foodItemNamePattern) || foodItemName.isEmpty() ||
+                CosUtil.validateName(newName,foodItemNamePattern) || newName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
         return foodItemStore
@@ -59,7 +61,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem updateFoodItemQuantity(int quantity, String foodItemName) throws CustomException {
-        if(CosUtil.validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+        if(CosUtil.validateName(foodItemName,foodItemNamePattern) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
         FoodItem alreadyExistFoodItem = new FoodItem();
@@ -84,7 +86,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public FoodItem updateFoodItemPrice(double price, String foodItemName) throws CustomException {
-        if(CosUtil.validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+        if(CosUtil.validateName(foodItemName,foodItemNamePattern) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
         return foodItemStore
@@ -93,7 +95,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
 
     @Override
     public boolean deleteFoodItem(String foodItemName) throws CustomException {
-        if(CosUtil.validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+        if(CosUtil.validateName(foodItemName,foodItemNamePattern) || foodItemName.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
         return foodItemStore.deleteFoodItem(CosUtil.capitalizeFirstLetter(foodItemName));

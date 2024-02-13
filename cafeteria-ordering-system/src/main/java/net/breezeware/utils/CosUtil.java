@@ -1,4 +1,4 @@
-package net.breezeware.utility;
+package net.breezeware.utils;
 
 import net.breezeware.exception.CustomException;
 
@@ -43,15 +43,9 @@ public final class CosUtil {
         }
     }
 
-    public static boolean validateFoodItemName(String foodItemName){
-        Pattern pattern = Pattern.compile("[^a-zA-Z ]");
-        Matcher matcher = pattern.matcher(foodItemName);
-        return matcher.find();
-    }
-
-    public static boolean validateFoodMenuName(String foodItemName){
-        Pattern pattern = Pattern.compile("[^a-zA-Z0-9 ]");
-        Matcher matcher = pattern.matcher(foodItemName);
+    public static boolean validateName(String name, String regex){
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(name);
         return matcher.find();
     }
 }

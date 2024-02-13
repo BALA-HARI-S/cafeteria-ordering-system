@@ -3,9 +3,9 @@ package net.breezeware.service.impl;
 import net.breezeware.dataStore.OrderDataStore;
 import net.breezeware.entity.OrderStatus;
 import net.breezeware.exception.CustomException;
-import net.breezeware.service.api.DeliveryManager;
+import net.breezeware.service.api.ManageDelivery;
 
-public class DeliveryManagerImplementation implements DeliveryManager {
+public class DeliveryManagerImplementation implements ManageDelivery {
     private final OrderDataStore orderDataStore;
 
     public DeliveryManagerImplementation(OrderDataStore orderDataStore) {

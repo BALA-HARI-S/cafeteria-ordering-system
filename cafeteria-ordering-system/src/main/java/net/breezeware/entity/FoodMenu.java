@@ -1,6 +1,6 @@
 package net.breezeware.entity;
 
-import net.breezeware.utility.CosUtil;
+import net.breezeware.utils.CosUtil;
 
 import java.time.Instant;
 import java.util.ArrayList;

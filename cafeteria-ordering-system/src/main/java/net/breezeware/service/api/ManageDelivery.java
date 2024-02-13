@@ -2,7 +2,7 @@ package net.breezeware.service.api;
 
 import net.breezeware.exception.CustomException;
 
-public interface DeliveryManager {
+public interface ManageDelivery {
     /**
      * Change the order status to OrderStatus.ORDER_DELIVERED.
      * @param orderId - The ID of the prepared order (with Status OrderStatus.ORDER_PREPARED) to be changed.

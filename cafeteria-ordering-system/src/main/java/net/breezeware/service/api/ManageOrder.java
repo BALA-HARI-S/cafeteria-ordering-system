@@ -8,7 +8,7 @@ import net.breezeware.exception.CustomException;
 import java.util.HashMap;
 import java.util.List;
 
-public interface OrderManager {
+public interface ManageOrder {
     /**
      * Creates an order with the provided details.
      *
