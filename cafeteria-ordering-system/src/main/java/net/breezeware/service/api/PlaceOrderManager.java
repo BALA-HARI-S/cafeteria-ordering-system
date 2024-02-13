@@ -12,7 +12,7 @@ public interface PlaceOrderManager {
     Order retrieveOrder(int orderId) throws CustomException;
     HashMap<String, Integer> retrieveOrderedFoodItems(int orderId) throws CustomException;
     Delivery retrieveDeliveryDetails(int orderId) throws CustomException;
-    boolean updateFoodItemsInOrder(int orderId, String foodItemName, int foodItemQuantity) throws CustomException;
+    boolean updateFoodItemsInCartOrder(int orderId, String foodItemName, int foodItemQuantity) throws CustomException;
     boolean updateDeliveryLocation(int orderId, String newDeliveryLocation) throws CustomException;
     boolean updateDeliveryDateAndTime(int orderId, String newDeliveryDateTime) throws CustomException;
     boolean updateCartOrderTotalCost(int orderId, double totalCost) throws CustomException;

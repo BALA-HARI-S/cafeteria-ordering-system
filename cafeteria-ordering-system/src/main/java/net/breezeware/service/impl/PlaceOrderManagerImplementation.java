@@ -26,7 +26,7 @@ public class PlaceOrderManagerImplementation implements PlaceOrderManager {
         orderDataStore.openConnection();
         Order cartOrder = orderDataStore.insertIntoOrders(order.getTotalCost(), order.getOrderStatus().name(), createdLocalDateTime);
         for(String foodItemName: foodItemsQuantityMap.keySet()){
-            orderDataStore.insertIntoOrderedFoodItems(cartOrder.getId(), foodItemName, foodItemsQuantityMap.get(foodItemName));
+            orderDataStore.insertIntoOrderFoodItemsMap(cartOrder.getId(), foodItemName, foodItemsQuantityMap.get(foodItemName));
         }
         LocalDateTime localDateTime = LocalDateTime.parse(deliveryDateTime, DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a"));
         orderDataStore.insertDeliveryDetails(cartOrder.getId(), deliveryLocation, localDateTime);
@@ -59,44 +59,44 @@ public class PlaceOrderManagerImplementation implements PlaceOrderManager {
     }
 
     @Override
-    public boolean updateFoodItemsInOrder(int orderId, String foodItemName, int foodItemQuantity) throws CustomException {
+    public boolean updateFoodItemsInCartOrder(int orderId, String foodItemName, int foodItemQuantity) throws CustomException {
         orderDataStore.openConnection();
-        orderDataStore.insertIntoOrderedFoodItems(orderId, foodItemName, foodItemQuantity);
+        Order order = orderDataStore.insertIntoOrderFoodItemsMap(orderId, foodItemName, foodItemQuantity);
         orderDataStore.closeConnection();
-        return true;
+        return !Objects.isNull(order);
     }
 
     @Override
     public boolean updateDeliveryLocation(int orderId, String newDeliveryLocation) throws CustomException {
         orderDataStore.openConnection();
-        orderDataStore.updateDeliveryLocation(orderId, newDeliveryLocation);
+        Order order = orderDataStore.updateDeliveryLocation(orderId, newDeliveryLocation);
         orderDataStore.closeConnection();
-        return true;
+        return !Objects.isNull(order);
     }
 
     @Override
     public boolean updateDeliveryDateAndTime(int orderId, String newDeliveryDateTime) throws CustomException {
         orderDataStore.openConnection();
         LocalDateTime localDateTime = LocalDateTime.parse(newDeliveryDateTime, DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a"));
-        orderDataStore.updateDeliveryDateTime(orderId, localDateTime);
+        Order order = orderDataStore.updateDeliveryDateTime(orderId, localDateTime);
         orderDataStore.closeConnection();
-        return true;
+        return !Objects.isNull(order);
     }
 
     @Override
     public boolean updateCartOrderTotalCost(int orderId, double totalCost) throws CustomException {
         orderDataStore.openConnection();
-        orderDataStore.updateCartOrderTotalCost(orderId, totalCost);
+        Order order = orderDataStore.updateCartOrderTotalCost(orderId, totalCost);
         orderDataStore.closeConnection();
-        return true;
+        return !Objects.isNull(order);
     }
 
     @Override
     public boolean updateCartOrderFoodItemQuantity(int orderId, String foodItemName, int quantity) throws CustomException {
         orderDataStore.openConnection();
-        orderDataStore.updateCartOrderFoodItemQuantity(orderId, foodItemName, quantity);
+        Order order = orderDataStore.updateCartOrderFoodItemQuantity(orderId, foodItemName, quantity);
         orderDataStore.closeConnection();
-        return true;
+        return !Objects.isNull(order);
     }
 
     @Override

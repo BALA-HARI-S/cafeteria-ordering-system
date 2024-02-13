@@ -649,7 +649,7 @@ public class Main {
                                                                 System.out.println("Food Item Added to Orders List");
                                                                 scanner.nextLine();
                                                             }
-                                                            placeOrderManager.updateFoodItemsInOrder(cartOrderId, foodItem.getName(), cartFoodItems.get(foodItem.getName()));
+                                                            placeOrderManager.updateFoodItemsInCartOrder(cartOrderId, foodItem.getName(), cartFoodItems.get(foodItem.getName()));
                                                             placeOrderManager.updateCartOrderTotalCost(cartOrderId, totalCost);
                                                             System.out.println("Cart Order Updated!");
                                                             printOrder(cartOrders);
