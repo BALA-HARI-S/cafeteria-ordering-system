@@ -61,7 +61,7 @@ public class FoodMenuDataStore {
     private static final int ORDER_BY_ASC = 1;
 
     private Connection connection;
-    private final FoodItemManager foodItemManager = new FoodItemManagerImplementation();
+    private final FoodItemManager foodItemManager = new FoodItemManagerImplementation(new FoodItemDataStore());
 
     public void openConnection() throws CustomException {
         try {
@@ -155,8 +155,13 @@ public class FoodMenuDataStore {
                 String foodItemName = result.getString(COLUMN_FOOD_ITEM_NAME);
                 foodMenuItems.add(foodItemManager.retrieveFoodItem(foodItemName));
             }
-            result.close();
-            return foodMenuItems;
+            if(!foodMenuItems.isEmpty()){
+                result.close();
+                return foodMenuItems;
+            } else {
+                result.close();
+                throw new CustomException("There are no Items in the Menu");
+            }
         } catch (SQLException e){
             throw new CustomException("Couldn't Query Food Menu Items. " + e.getMessage());
         }

@@ -44,7 +44,7 @@ public class OrderDataStore {
     private static final String UPDATE_CART_ORDER_TOTAL_COST = "UPDATE " + TABLE_ORDERS + " SET " +
             COLUMN_ORDER_TOTAL_COST + " = ? WHERE " + COLUMN_ORDER_ORDER_ID + " = ?";
 
-    private static final String INSERT_INTO_ORDERED_FOOD_ITEMS = "INSERT INTO " + TABLE_ORDER_FOOD_ITEMS_MAP + "(" +
+    private static final String INSERT_INTO_ORDER_FOOD_ITEMS_MAP = "INSERT INTO " + TABLE_ORDER_FOOD_ITEMS_MAP + "(" +
             COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID + "," + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME + "," +
             COLUMN_ORDERED_FOOD_ITEMS_QUANTITY + ") VALUES(?,?,?)";
     private static final String QUERY_ORDERED_FOOD_ITEMS = "SELECT " + COLUMN_ORDERED_FOOD_ITEMS_FOOD_ITEM_NAME +
@@ -104,14 +104,20 @@ public class OrderDataStore {
         }
     }
 
-    public void insertIntoOrderedFoodItems(int orderId, String foodItemName, int foodItemQuantity) throws CustomException {
-            try(PreparedStatement insertOrderedFoodItems = connection.prepareStatement(INSERT_INTO_ORDERED_FOOD_ITEMS)){
-                insertOrderedFoodItems.setInt(1, orderId);
-                insertOrderedFoodItems.setString(2,foodItemName);
-                insertOrderedFoodItems.setInt(3, foodItemQuantity);
-                insertOrderedFoodItems.executeUpdate();
+    public Order insertIntoOrderFoodItemsMap(int orderId, String foodItemName, int foodItemQuantity) throws CustomException {
+            try(PreparedStatement insertIntoOrderFoodItemsMap = connection.prepareStatement(INSERT_INTO_ORDER_FOOD_ITEMS_MAP,
+                    Statement.RETURN_GENERATED_KEYS)){
+                insertIntoOrderFoodItemsMap.setInt(1, orderId);
+                insertIntoOrderFoodItemsMap.setString(2,foodItemName);
+                insertIntoOrderFoodItemsMap.setInt(3, foodItemQuantity);
+                int rowsAffected = insertIntoOrderFoodItemsMap.executeUpdate();
+                if(rowsAffected > 0){
+                    return queryOrder(insertIntoOrderFoodItemsMap.getGeneratedKeys().getInt(COLUMN_ORDERED_FOOD_ITEMS_ORDER_ID));
+                } else {
+                    throw new CustomException("Couldn't Insert Food Items to Order Food Items Map.");
+                }
             }catch (SQLException e){
-                throw new CustomException("Couldn't Insert Food Items to Ordered Food Items." + e.getMessage());
+                throw new CustomException("Couldn't Insert Food Items to Order Food Items Map." + e.getMessage());
             }
     }
 
@@ -216,31 +222,43 @@ public class OrderDataStore {
                 return updatedOrderStatus;
             } else {
                 resultSet.close();
-                throw new CustomException("Order not Found!. ");
+                throw new CustomException("Order not Found!");
             }
         } catch (SQLException e){
             throw new CustomException("Couldn't Update the Order Status. " + e.getMessage());
         }
     }
 
-    public void updateCartOrderTotalCost(int orderId, double totalCost) throws CustomException {
-        try(PreparedStatement updateCartOrderTotalCost = connection.prepareStatement(UPDATE_CART_ORDER_TOTAL_COST)){
+    public Order updateCartOrderTotalCost(int orderId, double totalCost) throws CustomException {
+        try(PreparedStatement updateCartOrderTotalCost = connection.prepareStatement(UPDATE_CART_ORDER_TOTAL_COST,
+                Statement.RETURN_GENERATED_KEYS)){
             updateCartOrderTotalCost.setDouble(1,totalCost);
             updateCartOrderTotalCost.setInt(2,orderId);
-            updateCartOrderTotalCost.executeUpdate();
+            int rowsAffected = updateCartOrderTotalCost.executeUpdate();
+            if(rowsAffected > 0){
+                return queryOrder(updateCartOrderTotalCost.getGeneratedKeys().getInt(COLUMN_DELIVERY_ORDER_ID));
+            } else {
+                throw new CustomException("Couldn't Update Cart Order Total Cost");
+            }
         } catch (SQLException e){
             throw new CustomException("Couldn't Update Cart Order Total Cost. " + e.getMessage());
         }
     }
 
-    public void updateCartOrderFoodItemQuantity(int orderId,String foodItemName, int quantity) throws CustomException {
-        try(PreparedStatement updateQuantity = connection.prepareStatement(UPDATE_ORDERED_FOOD_ITEM_QUANTITY)){
+    public Order updateCartOrderFoodItemQuantity(int orderId,String foodItemName, int quantity) throws CustomException {
+        try(PreparedStatement updateQuantity = connection.prepareStatement(UPDATE_ORDERED_FOOD_ITEM_QUANTITY,
+                Statement.RETURN_GENERATED_KEYS)){
             updateQuantity.setDouble(1,quantity);
             updateQuantity.setInt(2,orderId);
             updateQuantity.setString(3,foodItemName);
-            updateQuantity.executeUpdate();
+            int rowsAffected = updateQuantity.executeUpdate();
+            if(rowsAffected > 0){
+                return queryOrder(updateQuantity.getGeneratedKeys().getInt(COLUMN_DELIVERY_ORDER_ID));
+            } else {
+                throw new CustomException("Couldn't Update Cart Order Food Item Quantity");
+            }
         } catch (SQLException e){
-            throw new CustomException("Couldn't Update Cart Order Total Cost. " + e.getMessage());
+            throw new CustomException("Couldn't Update Food Item Quantity. " + e.getMessage());
         }
     }
 
@@ -254,23 +272,35 @@ public class OrderDataStore {
         }
     }
 
-    public void updateDeliveryLocation(int orderId, String deliveryLocation) throws CustomException{
-        try(PreparedStatement updateDeliveryLocation = connection.prepareStatement(UPDATE_DELIVERY_LOCATION)){
+    public Order updateDeliveryLocation(int orderId, String deliveryLocation) throws CustomException{
+        try(PreparedStatement updateDeliveryLocation = connection.prepareStatement(UPDATE_DELIVERY_LOCATION,
+                Statement.RETURN_GENERATED_KEYS)){
             updateDeliveryLocation.setString(1, deliveryLocation);
             updateDeliveryLocation.setInt(2, orderId);
-            updateDeliveryLocation.executeUpdate();
+            int rowsAffected = updateDeliveryLocation.executeUpdate();
+            if(rowsAffected > 0){
+                return queryOrder(updateDeliveryLocation.getGeneratedKeys().getInt(COLUMN_DELIVERY_ORDER_ID));
+            } else {
+                throw new CustomException("Couldn't Update Delivery Locations");
+            }
         } catch (SQLException e){
-            throw new CustomException("Couldn't Insert Delivery Details into Delivery. " + e.getMessage());
+            throw new CustomException("Couldn't Insert Delivery Location. " + e.getMessage());
         }
     }
 
-    public void updateDeliveryDateTime(int orderId, LocalDateTime deliveryDateTime) throws CustomException{
-        try(PreparedStatement updateDeliveryDateTime = connection.prepareStatement(UPDATE_DELIVERY_DATE_TIME)){
+    public Order updateDeliveryDateTime(int orderId, LocalDateTime deliveryDateTime) throws CustomException{
+        try(PreparedStatement updateDeliveryDateTime = connection.prepareStatement(UPDATE_DELIVERY_DATE_TIME,
+                Statement.RETURN_GENERATED_KEYS)){
             updateDeliveryDateTime.setTimestamp(1, Timestamp.valueOf(deliveryDateTime));
             updateDeliveryDateTime.setInt(2, orderId);
-            updateDeliveryDateTime.executeUpdate();
+            int rowsAffected = updateDeliveryDateTime.executeUpdate();
+            if(rowsAffected > 0){
+                return queryOrder(updateDeliveryDateTime.getGeneratedKeys().getInt(COLUMN_DELIVERY_ORDER_ID));
+            } else {
+                throw new CustomException("Couldn't Update Delivery Date and Time");
+            }
         } catch (SQLException e){
-            throw new CustomException("Couldn't Insert Delivery Details into Delivery. " + e.getMessage());
+            throw new CustomException("Couldn't Update Delivery Date And Time. " + e.getMessage());
         }
     }
 }

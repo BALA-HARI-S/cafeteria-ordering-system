@@ -16,12 +16,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FoodMenuManagerImplementation implements FoodMenuManager {
-    private final FoodMenuDataStore foodMenuStore = new FoodMenuDataStore();
+    private final FoodMenuDataStore foodMenuStore;
+
+    public FoodMenuManagerImplementation(FoodMenuDataStore foodMenuStore) {
+        this.foodMenuStore = foodMenuStore;
+    }
+
     @Override
     public FoodMenu createFoodMenu(String name, List<AvailableDay> availableDay) throws CustomException {
         String menuName = capitalizeFirstLetter(name);
         if(validateFoodMenuName(menuName) || menuName.isEmpty()){
-            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         Instant instantNow = Instant.now();
         LocalDateTime createdDateTime = LocalDateTime.ofInstant(instantNow, ZoneId.systemDefault());
@@ -55,7 +60,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     @Override
     public FoodMenu retrieveFoodMenu(String foodMenuName) throws CustomException {
         if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
-            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         foodMenuStore.openConnection();
         FoodMenu foodMenu = foodMenuStore.queryFoodMenu(capitalizeFirstLetter(foodMenuName));
@@ -114,7 +119,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     @Override
     public FoodMenu updateFoodMenuName(String newName, String foodMenuName) throws CustomException {
         if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
-            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         foodMenuStore.openConnection();
         FoodMenu foodMenu = foodMenuStore.updateFoodMenuName(
@@ -126,7 +131,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     @Override
     public FoodMenu updateFoodMenuAvailableDay(List<AvailableDay> availableDays, String foodMenuName) throws CustomException {
         if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
-            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         foodMenuStore.openConnection();
         FoodMenu foodMenu = foodMenuStore.updateFoodMenuAvailableDay(
@@ -138,7 +143,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     @Override
     public boolean deleteFoodMenu(String foodMenuName) throws CustomException {
         if(validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
-            throw new CustomException("Food Item Menu Cannot be Empty and should only contains 0-9,-,_!");
+            throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         String foodMenu = capitalizeFirstLetter(foodMenuName);
         int retrievedFoodMenuId = retrieveFoodMenu(foodMenu).getId();
@@ -172,7 +177,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     }
 
     private boolean validateFoodMenuName(String foodItemName){
-        Pattern pattern = Pattern.compile("[^a-zA-Z0-9_-]");
+        Pattern pattern = Pattern.compile("[^a-zA-Z0-9 ]");
         Matcher matcher = pattern.matcher(foodItemName);
         return matcher.find();
     }

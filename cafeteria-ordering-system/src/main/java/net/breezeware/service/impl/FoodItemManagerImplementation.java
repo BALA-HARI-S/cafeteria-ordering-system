@@ -15,14 +15,17 @@ import java.util.regex.Pattern;
 
 public class FoodItemManagerImplementation implements FoodItemManager{
 
-    private final FoodItemDataStore foodItemStore = new FoodItemDataStore();
+    private final FoodItemDataStore foodItemStore;
+    public FoodItemManagerImplementation(FoodItemDataStore foodItemDataStore){
+        this.foodItemStore = foodItemDataStore;
+    }
 
     @Override
     public FoodItem createFoodItem(String name, double price) throws CustomException {
-        String foodItemName = capitalizeFirstLetter(name);
-        if(validateFoodItemName(foodItemName) || foodItemName.isEmpty()){
+        if(validateFoodItemName(name) || name.isEmpty()){
             throw new CustomException("Food Item Name Cannot be Empty and should only contains Letters!");
         }
+        String foodItemName = capitalizeFirstLetter(name);
         foodItemStore.openConnection();
         Instant now = Instant.now();
         int initialQuantity = 0;
@@ -80,7 +83,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
             throw new CustomException(e.getMessage());
         }
         if(Objects.isNull(alreadyExistFoodItem)){
-            System.out.println("Food Item not available");
+            throw new CustomException("Food Item not available");
         } else {
             FoodItem updatedFoodItem = foodItemStore
                     .updateFoodItemQuantity(quantity, capitalizeFirstLetter(foodItemName));
@@ -132,7 +135,7 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     }
 
     private boolean validateFoodItemName(String foodItemName){
-        Pattern pattern = Pattern.compile("[^a-zA-Z]");
+        Pattern pattern = Pattern.compile("[^a-zA-Z ]");
         Matcher matcher = pattern.matcher(foodItemName);
         return matcher.find();
     }
