@@ -1,7 +1,7 @@
 package net.breezeware.service.impl;
 
 import net.breezeware.dataStore.FoodMenuDataStore;
-import net.breezeware.entity.AvailableDay;
+import net.breezeware.entity.MenuAvailability;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
 import net.breezeware.exception.CustomException;
@@ -37,8 +37,8 @@ class FoodMenuManagerTest {
     // Create Food by providing Empty Food Menu Name
     @Test
     void givenEmptyFoodMenuName_WhenCreateFoodMenu_ThenThrowsException() throws  Exception {
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
         Assertions.assertThatThrownBy(() -> foodMenuManager.createFoodMenu("",availableDays))
                 .isInstanceOf(CustomException.class)
                 .hasMessage("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
@@ -47,8 +47,8 @@ class FoodMenuManagerTest {
     // Create Food by providing Invalid Food Menu Name
     @Test
     void givenInvalidFoodMenuName_WhenCreateFoodMenu_ThenThrowsException() throws  Exception {
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
         Assertions.assertThatThrownBy(() -> foodMenuManager.createFoodMenu("food-menu",availableDays))
                 .isInstanceOf(CustomException.class)
                 .hasMessage("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
@@ -58,8 +58,8 @@ class FoodMenuManagerTest {
     @Test
     void givenValidFoodMenuDetails_WhenCreateFoodMenu_ThenReturnFoodMenu() throws CustomException {
         String name = "Test Menu";
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
 
         // Mocking Instant.now() to return a fixed value
         Instant fixedInstant = Instant.parse("2024-02-12T10:15:30.00Z");
@@ -84,14 +84,14 @@ class FoodMenuManagerTest {
     @Test
     void givenRetrieveFoodMenuOfTheDayFromMenuList_WhenRetrieveFoodMenuOfTheDay_ThenReturnFoodMenu() throws CustomException {
         String name = "Test Menu";
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
-        availableDays.add(AvailableDay.TUESDAY);
-        availableDays.add(AvailableDay.WEDNESDAY);
-        availableDays.add(AvailableDay.THURSDAY);
-        availableDays.add(AvailableDay.FRIDAY);
-        availableDays.add(AvailableDay.SATURDAY);
-        availableDays.add(AvailableDay.SUNDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
+        availableDays.add(MenuAvailability.TUESDAY);
+        availableDays.add(MenuAvailability.WEDNESDAY);
+        availableDays.add(MenuAvailability.THURSDAY);
+        availableDays.add(MenuAvailability.FRIDAY);
+        availableDays.add(MenuAvailability.SATURDAY);
+        availableDays.add(MenuAvailability.SUNDAY);
 
         // Mocking Instant.now() to return a fixed value
         Instant fixedInstant = Instant.parse("2024-02-12T10:15:30.00Z");
@@ -136,8 +136,8 @@ class FoodMenuManagerTest {
     @Test
     void givenFoodMenuName_WhenRetrieveFoodMenu_ThenReturnFoodMenu() throws CustomException{
         String name = "Test Menu";
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
         Instant fixedInstant = Instant.parse("2024-02-12T10:15:30.00Z");
         when(foodMenuDataStore.queryFoodMenu(anyString())).thenReturn(new FoodMenu(name,availableDays,fixedInstant,fixedInstant));
         FoodMenu foodMenu = foodMenuManager.retrieveFoodMenu(name);
@@ -196,8 +196,8 @@ class FoodMenuManagerTest {
     @Test
     void givenRetrieveFoodMenus_WhenRetrieveAllFoodMenus_ThenReturnFoodMenusList() throws CustomException{
         String name = "Test Menu";
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
         Instant fixedInstant = Instant.parse("2024-02-12T10:15:30.00Z");
         List<FoodMenu> foodMenuList = new ArrayList<>();
         foodMenuList.add(new FoodMenu(name,availableDays,fixedInstant,fixedInstant));
@@ -245,8 +245,8 @@ class FoodMenuManagerTest {
     @Test
     void givenExistingFoodMenuNameAndNewFoodMenuName_WhenUpdateFoodMenuName_ThenFoodMenu() throws CustomException{
         String name = "Test Menu";
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
         Instant fixedInstant = Instant.parse("2024-02-12T10:15:30.00Z");
 
         when(foodMenuDataStore.updateFoodMenuName(anyString(),anyString()))
@@ -260,23 +260,23 @@ class FoodMenuManagerTest {
     @Test
     void givenFoodItemAvailableDaysList_WhenUpdateFoodMenuAvailableDay_ThenReturnFoodMenu() throws CustomException{
         String name = "Test Menu";
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
         Instant fixedInstant = Instant.parse("2024-02-12T10:15:30.00Z");
 
         when(foodMenuDataStore.updateFoodMenuAvailableDay(anyString(),anyString()))
                 .thenReturn(new FoodMenu(name,availableDays,fixedInstant,fixedInstant));
 
         FoodMenu updatedFoodMenu = foodMenuManager.updateFoodMenuAvailableDay(availableDays,name);
-        Assertions.assertThat(updatedFoodMenu.getAvailableDay().get(0)).isEqualTo(AvailableDay.MONDAY);
+        Assertions.assertThat(updatedFoodMenu.getAvailableDay().get(0)).isEqualTo(MenuAvailability.MONDAY);
     }
 
     // Delete Food Menu
     @Test
     void givenFoodMenuName_WhenDeleteFoodMenu_ThenReturnTrue() throws CustomException{
         String name = "Test Menu";
-        List<AvailableDay> availableDays = new ArrayList<>();
-        availableDays.add(AvailableDay.MONDAY);
+        List<MenuAvailability> availableDays = new ArrayList<>();
+        availableDays.add(MenuAvailability.MONDAY);
         Instant fixedInstant = Instant.parse("2024-02-12T10:15:30.00Z");
         when(foodMenuDataStore.queryFoodMenu(anyString())).thenReturn(new FoodMenu(name,availableDays,fixedInstant,fixedInstant));
         when(foodMenuDataStore.deleteFoodMenu(anyString())).thenReturn(true);

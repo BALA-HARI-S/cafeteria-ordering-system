@@ -1,9 +1,8 @@
 package net.breezeware.entity;
 
+import net.breezeware.utility.CosUtil;
+
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 public class FoodItem {
     private int id;
@@ -75,21 +74,11 @@ public class FoodItem {
         this.modified = modified;
     }
 
-    private String formatCreatedInstant(){
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(created,ZoneId.systemDefault());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
-        return  localDateTime.format(formatter);
-    }
-
-    private String formatModifiedInstant(){
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(modified,ZoneId.systemDefault());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
-        return  localDateTime.format(formatter);
-    }
-
     @Override
     public String toString() {
         return "%d | %s | %d | %.2f | %s | %s"
-                .formatted(id, name, quantity, price, formatCreatedInstant(), formatModifiedInstant());
+                .formatted(id, name, quantity, price,
+                        CosUtil.formatInstantToString(created,"dd-MM-yyyy hh:mm:ss a"),
+                        CosUtil.formatInstantToString(modified,"dd-MM-yyyy hh:mm:ss a"));
     }
 }

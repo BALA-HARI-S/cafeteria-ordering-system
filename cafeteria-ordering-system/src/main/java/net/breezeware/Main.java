@@ -7,10 +7,8 @@ import net.breezeware.entity.*;
 import net.breezeware.exception.CustomException;
 import net.breezeware.service.api.*;
 import net.breezeware.service.impl.*;
+import net.breezeware.utility.CosUtil;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.*;
 
 public class Main {
@@ -21,9 +19,8 @@ public class Main {
 
     private static final FoodItemManager foodItemManager = new FoodItemManagerImplementation(foodItemDataStore);
     private static final FoodMenuManager foodMenuManager = new FoodMenuManagerImplementation(foodMenuDataStore);
-    private  static final PlaceOrderManager placeOrderManager = new PlaceOrderManagerImplementation(orderDataStore);
-    private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation(orderDataStore);
     private static final OrderManager orderManager = new OrderManagerImplementation(orderDataStore);
+    private static final DeliveryManager deliveryManger = new DeliveryManagerImplementation(orderDataStore);
 
     private static final Scanner scanner = new Scanner(System.in);
 
@@ -151,7 +148,7 @@ public class Main {
                                 foodItems.forEach(System.out::println);
                                 scanner.nextLine();
                                 System.out.print("Which Food Item Name do you want to change(Food Item Name): ");
-                                String foodItem = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                String foodItem = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                                 try{
                                     System.out.println("Changing Name for Food Item : "+foodItemManager.retrieveFoodItem(foodItem).getName());
                                     System.out.print("Enter a New name for the Food Item: ");
@@ -179,7 +176,7 @@ public class Main {
                                 foodItems.forEach(System.out::println);
                                 scanner.nextLine();
                                 System.out.print("Which food-item price do you want to change(Food Item Name): ");
-                                String foodItem = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                String foodItem = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                                 try{
                                     System.out.println("Changing Price for Food Item : "+foodItemManager.retrieveFoodItem(foodItem).getName());
                                     System.out.print("Enter a New Price for the food-item(₹0.00): ");
@@ -236,7 +233,7 @@ public class Main {
                             String updateFoodItemQuantity = scanner.nextLine();
                             if(updateFoodItemQuantity.toLowerCase().charAt(0) == 'y'){
                                 System.out.print("Choose Food Item from the above Menu to update it's quantity(Food Item Name): ");
-                                String foodItemNameFromMenu = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                String foodItemNameFromMenu = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                                 boolean isValidFoodItem = false;
                                 for(FoodItem item: todayMenuFoodItems){
                                     if (foodItemNameFromMenu.equals(item.getName())) {
@@ -276,7 +273,7 @@ public class Main {
                     } catch (CustomException e){
                         try{
                             FoodMenu newFoodMenu = foodMenuManager.createFoodMenu(foodMenuName,
-                                    convertAndValidateAvailableDays(foodAvailableDays));
+                                    MenuAvailability.validateAndConvertAvailableDaysToList(foodAvailableDays));
                             System.out.println("""
                                 Food Item Created
                                 _id | name | available_days | created | modified
@@ -290,7 +287,7 @@ public class Main {
                     System.out.println("Cafeteria Admin Operation: View Food Menu");
                     scanner.nextLine();
                     System.out.print("Food Menu Name: ");
-                    String foodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                    String foodMenuName = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                     try{
                         FoodMenu foodMenu = foodMenuManager.retrieveFoodMenu(foodMenuName);
                         System.out.println("""
@@ -426,10 +423,10 @@ public class Main {
                                     System.out.println("_id  |   name    |   available_day   |    created    |    modified");
                                     foodMenuManager.retrieveAllFoodMenus(true,1, "_id").forEach(System.out::println);
                                     System.out.print("Enter the Food Menu Name that you want to change: ");
-                                    String foodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                    String foodMenuName = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                                     foodMenuManager.retrieveFoodMenu(foodMenuName);
                                     System.out.print("Enter a New Food Menu Name: ");
-                                    String newFoodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                    String newFoodMenuName = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                                     FoodMenu updatedMenu = foodMenuManager.updateFoodMenuName(newFoodMenuName, foodMenuName);
                                     System.out.println("""
                                                 Food Menu Name Updated!
@@ -450,13 +447,13 @@ public class Main {
 
                                     System.out.print("Enter a New Food Menu Available Days(Day1,Day2,..): ");
                                     String newFoodMenuAvailableDays = scanner.nextLine();
-                                    List<AvailableDay> availableDays = convertAndValidateAvailableDays(newFoodMenuAvailableDays);
+                                    List<MenuAvailability> availableDays = MenuAvailability.validateAndConvertAvailableDaysToList(newFoodMenuAvailableDays);
                                     FoodMenu updatedMenu = foodMenuManager.updateFoodMenuAvailableDay(availableDays, foodMenuName);
                                     System.out.println("""
                                                 Food Menu Available Day Updated!
                                                 _id   |   name   |   available_day""");
                                     System.out.printf("%d   |   %s  |   %s%n",updatedMenu.getId(),updatedMenu.getName(),
-                                            getCustomStringRepresentation(updatedMenu.getAvailableDay()));
+                                            MenuAvailability.daysToString(updatedMenu.getAvailableDay()));
                                 } catch (CustomException e){
                                     System.out.println(e.getMessage());
                                 }
@@ -472,7 +469,7 @@ public class Main {
                         foodMenuManager.retrieveAllFoodMenus(true,1, "_id").forEach(System.out::println);
                         scanner.nextLine();
                         System.out.print("Enter Food Menu Name to Delete: ");
-                        String foodMenuName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                        String foodMenuName = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                         boolean result = foodMenuManager.deleteFoodMenu(foodMenuName);
                         System.out.println(result? "Food Menu Deleted!" : "Couldn't Delete Food Menu!");
                     } catch (CustomException e){
@@ -515,7 +512,7 @@ public class Main {
                         boolean isAddingFoodItems = true;
                         while(isAddingFoodItems){
                             System.out.print("Food Item Name: ");
-                            String foodItemName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                            String foodItemName = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                             System.out.print("Food Item Quantity: ");
                             int foodItemQuantity = scanner.nextInt();
                             orderedFoodItemQuantity = foodItemQuantity;
@@ -563,9 +560,8 @@ public class Main {
                         System.out.print("Enter Delivery Location: ");
                         String deliveryLocation = scanner.nextLine();
                         System.out.print("Enter Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
-                        String deliveryDateTime = scanner.nextLine();
-                        isDateTimeFormatValid(deliveryDateTime);
-                        placeOrderManager.createOrder(foodItemsQuantityMap, totalCost, deliveryLocation, deliveryDateTime);
+                        String deliveryDateTime = CosUtil.isDateTimeFormatValid(scanner.nextLine());
+                        orderManager.createOrder(foodItemsQuantityMap, totalCost, deliveryLocation, deliveryDateTime);
                         System.out.println("Order Created!");
                     } catch (CustomException e){
                         int restoreFoodItemQuantity = balanceFoodItem + orderedFoodItemQuantity;
@@ -576,7 +572,7 @@ public class Main {
                 case 16 -> {
                     System.out.println("Customer Operation : View Cart");
                     try{
-                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CART);
+                        List<Order> cartOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_CART);
                         if(cartOrders.isEmpty()){
                             System.out.println("Your Cart is Empty!");
                         } else {
@@ -590,7 +586,7 @@ public class Main {
                     System.out.println("Customer Operation: Edit Order");
                     System.out.println("Editing Food Items in Cart");
                     try{
-                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CART);
+                        List<Order> cartOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_CART);
                         if(cartOrders.isEmpty()){
                             System.out.println("Your Cart is Empty!");
                         } else {
@@ -623,7 +619,7 @@ public class Main {
                                             int foodItemEditOption = scanner.nextInt();
                                             switch (foodItemEditOption) {
                                                 case 1 -> {
-                                                    HashMap<String, Integer> cartFoodItems = placeOrderManager.retrieveOrderedFoodItems(cartOrderId);
+                                                    HashMap<String, Integer> cartFoodItems = orderManager.retrieveOrderedFoodItems(cartOrderId);
                                                     scanner.nextLine();
                                                     System.out.println("Select Food Items to Add to Cart Order");
                                                     List<FoodMenu> foodMenuOfTheDay = foodMenuManager.retrieveFoodMenuOfTheDay();
@@ -636,10 +632,10 @@ public class Main {
                                                     }
 
                                                     System.out.print("Food Item Name: ");
-                                                    String foodItemName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                                    String foodItemName = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                                                     System.out.print("Food Item Quantity: ");
                                                     int foodItemQuantity = scanner.nextInt();
-                                                    double totalCost = placeOrderManager.retrieveOrder(cartOrderId).getTotalCost();
+                                                    double totalCost = orderManager.retrieveOrder(cartOrderId).getTotalCost();
                                                     FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
                                                     for (FoodMenu menu : foodMenuOfTheDay) {
                                                         FoodItem foodMenuItem = foodMenuManager.retrieveFoodMenuItem(menu.getId(), foodItem.getId());
@@ -663,8 +659,8 @@ public class Main {
                                                                 System.out.println("Food Item Added to Orders List");
                                                                 scanner.nextLine();
                                                             }
-                                                            placeOrderManager.updateFoodItemsInCartOrder(cartOrderId, foodItem.getName(), cartFoodItems.get(foodItem.getName()));
-                                                            placeOrderManager.updateCartOrderTotalCost(cartOrderId, totalCost);
+                                                            orderManager.updateFoodItemsInCartOrder(cartOrderId, foodItem.getName(), cartFoodItems.get(foodItem.getName()));
+                                                            orderManager.updateCartOrderTotalCost(cartOrderId, totalCost);
                                                             System.out.println("Cart Order Updated!");
                                                             printOrder(cartOrders);
                                                         } else {
@@ -673,11 +669,11 @@ public class Main {
                                                     }
                                                 }
                                                 case 2 -> {
-                                                    HashMap<String, Integer> cartFoodItems = placeOrderManager.retrieveOrderedFoodItems(cartOrderId);
+                                                    HashMap<String, Integer> cartFoodItems = orderManager.retrieveOrderedFoodItems(cartOrderId);
                                                     scanner.nextLine();
                                                     System.out.println("Select Food Items to Remove from Cart Order");
                                                     System.out.print("Food Item Name to Remove from Cart Order: ");
-                                                    String foodItemName = capitalizeFirstLetter(scanner.nextLine().toLowerCase());
+                                                    String foodItemName = CosUtil.capitalizeFirstLetter(scanner.nextLine().toLowerCase());
                                                     System.out.print("Enter food Item Quantity : ");
                                                     int foodItemQuantity = scanner.nextInt();
                                                     FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
@@ -689,16 +685,16 @@ public class Main {
                                                                     foodItem.getQuantity() + cartFoodItems.get(foodItem.getName()),
                                                                     foodItem.getName());
                                                             double removedFoodItemsCost = foodItem.getPrice() * foodItemQuantity;
-                                                            placeOrderManager.updateCartOrderTotalCost(cartOrderId,
-                                                                    placeOrderManager.retrieveOrder(cartOrderId).getTotalCost() - removedFoodItemsCost);
-                                                            placeOrderManager.deleteCartOrderFoodItem(cartOrderId, foodItemName);
+                                                            orderManager.updateCartOrderTotalCost(cartOrderId,
+                                                                    orderManager.retrieveOrder(cartOrderId).getTotalCost() - removedFoodItemsCost);
+                                                            orderManager.deleteCartOrderFoodItem(cartOrderId, foodItemName);
                                                             System.out.println("Food Item Removed From this Cart Order");
                                                         } else {
-                                                            placeOrderManager.updateCartOrderFoodItemQuantity(cartOrderId, foodItem.getName(),
+                                                            orderManager.updateCartOrderFoodItemQuantity(cartOrderId, foodItem.getName(),
                                                                     cartFoodItems.get(foodItem.getName())-foodItemQuantity);
                                                             double removedFoodItemsCost = foodItem.getPrice() * foodItemQuantity;
-                                                            placeOrderManager.updateCartOrderTotalCost(cartOrderId,
-                                                                    placeOrderManager.retrieveOrder(cartOrderId).getTotalCost() - removedFoodItemsCost);
+                                                            orderManager.updateCartOrderTotalCost(cartOrderId,
+                                                                    orderManager.retrieveOrder(cartOrderId).getTotalCost() - removedFoodItemsCost);
                                                             System.out.println("Food Item Quantity Updated");
                                                         }
                                                         printOrder(cartOrders);
@@ -716,7 +712,7 @@ public class Main {
                                             System.out.print("Enter New Delivery Location: ");
                                             scanner.nextLine();
                                             String newDeliveryLocation = scanner.nextLine();
-                                            placeOrderManager.updateDeliveryLocation(cartOrderId, newDeliveryLocation);
+                                            orderManager.updateDeliveryLocation(cartOrderId, newDeliveryLocation);
                                             System.out.println("Delivery Location Updated");
                                         } catch (CustomException e){
                                             System.out.println(e.getMessage());
@@ -727,9 +723,8 @@ public class Main {
                                             System.out.println("Edit New Delivery Date And Time");
                                             System.out.print("Enter Delivery Date And Time(dd-MM-yyyy HH-mm-ss am/pm): ");
                                             scanner.nextLine();
-                                            String newDeliveryDateTime = scanner.nextLine();
-                                            isDateTimeFormatValid(newDeliveryDateTime);
-                                            placeOrderManager.updateDeliveryDateAndTime(cartOrderId, newDeliveryDateTime);
+                                            String newDeliveryDateTime = CosUtil.isDateTimeFormatValid(scanner.nextLine());
+                                            orderManager.updateDeliveryDateAndTime(cartOrderId, newDeliveryDateTime);
                                             System.out.println("Delivery Date And Time Updated");
                                         } catch (CustomException e){
                                             System.out.println(e.getMessage());
@@ -748,7 +743,7 @@ public class Main {
                 case 18 -> {
                     System.out.println("Customer Operation : Confirm Order");
                     try{
-                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CART);
+                        List<Order> cartOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_CART);
                         if(cartOrders.isEmpty()){
                             System.out.println("Your Cart is Empty!");
                         } else {
@@ -756,7 +751,7 @@ public class Main {
                         }
                         System.out.print("Enter Order Id to Confirm Order: ");
                         int orderId = scanner.nextInt();
-                        placeOrderManager.confirmOrder(orderId);
+                        orderManager.confirmOrder(orderId);
                         System.out.println("Order Confirmed");
                     } catch (CustomException e){
                         System.out.println(e.getMessage());
@@ -765,7 +760,7 @@ public class Main {
                 case 19 -> {
                     System.out.println("Customer Operation  : View Confirmed Orders");
                     try{
-                        List<Order> confirmedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
+                        List<Order> confirmedOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_RECEIVED);
                         if(confirmedOrders.isEmpty()){
                             System.out.println("Confirmed Orders is Empty!");
                         } else {
@@ -778,7 +773,7 @@ public class Main {
                 case 20 -> {
                     System.out.println("Customer Operation : Cancel the Order");
                     try{
-                        List<Order> cartOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
+                        List<Order> cartOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_RECEIVED);
                         if(cartOrders.isEmpty()){
                             System.out.println("There are no Orders Placed yet!");
                         } else {
@@ -786,7 +781,7 @@ public class Main {
                         }
                         System.out.print("Enter Order Id to Cancel Order: ");
                         int orderId = scanner.nextInt();
-                        placeOrderManager.cancelOrder(orderId);
+                        orderManager.cancelOrder(orderId);
                         System.out.println("Order Cancelled");
                     } catch (CustomException e){
                         System.out.println(e.getMessage());
@@ -795,7 +790,7 @@ public class Main {
                 case 21 -> {
                     System.out.println("Customer Operation  : View Cancelled Orders");
                     try{
-                        List<Order> cancelledOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CANCELLED);
+                        List<Order> cancelledOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_CANCELLED);
                         if(cancelledOrders.isEmpty()){
                             System.out.println("Cancelled Orders is Empty!");
                         } else {
@@ -808,7 +803,7 @@ public class Main {
                 case 22 -> {
                     try {
                         System.out.println("Cafeteria staff : List Active Orders");
-                        List<Order> confirmedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_PREPARED);
+                        List<Order> confirmedOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_PREPARED);
                         printOrder(confirmedOrders);
                     } catch (CustomException e){
                         System.out.println("Active " + e.getMessage());
@@ -818,7 +813,7 @@ public class Main {
                 case 23 -> {
                     System.out.println("Cafeteria staff : List Received Orders");
                     try {
-                        List<Order> receivedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
+                        List<Order> receivedOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_RECEIVED);
                         printOrder(receivedOrders);
                     } catch (CustomException e){
                         System.out.println("Received " + e.getMessage());
@@ -828,7 +823,7 @@ public class Main {
                 case 24 -> {
                     System.out.println("Cafeteria staff : List Cancelled Orders");
                     try {
-                        List<Order> cancelledOrders = orderManager.retrieveOrders(OrderStatus.ORDER_CANCELLED);
+                        List<Order> cancelledOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_CANCELLED);
                         printOrder(cancelledOrders);
                     } catch (CustomException e){
                         System.out.println("Cancelled " + e.getMessage());
@@ -838,7 +833,7 @@ public class Main {
                 case 25 -> {
                     System.out.println("Cafeteria staff : List Completed Orders");
                     try {
-                        List<Order> completedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_DELIVERED);
+                        List<Order> completedOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_DELIVERED);
                         printOrder(completedOrders);
                     } catch (CustomException e){
                         System.out.println("Delivered " + e.getMessage());
@@ -848,7 +843,7 @@ public class Main {
                 case 26 -> {
                     System.out.println("Cafeteria staff : Prepare Order");
                     try {
-                        List<Order> receivedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_RECEIVED);
+                        List<Order> receivedOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_RECEIVED);
                         if(receivedOrders.isEmpty()){
                             System.out.println("Received Orders is Empty!");
                         } else {
@@ -859,7 +854,7 @@ public class Main {
                             System.out.println("""
                             Order Prepared!
                             _id  | total_cost |  order_status  |  created""");
-                            orderManager.retrieveOrders(OrderStatus.ORDER_PREPARED).stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
+                            orderManager.retrieveAllOrders(OrderStatus.ORDER_PREPARED).stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
                         }
 
                     } catch (CustomException e){
@@ -871,7 +866,7 @@ public class Main {
                     System.out.println("Delivery Staff : Deliver Order");
                     try {
                         System.out.println("Cafeteria staff : List Active Orders");
-                        List<Order> confirmedOrders = orderManager.retrieveOrders(OrderStatus.ORDER_PREPARED);
+                        List<Order> confirmedOrders = orderManager.retrieveAllOrders(OrderStatus.ORDER_PREPARED);
                         if(confirmedOrders.isEmpty()){
                             System.out.println("Active Orders is Empty!");
                         } else {
@@ -882,7 +877,7 @@ public class Main {
                             System.out.println("""
                             Order Delivered!
                             _id  | total_cost |  order_status  |  created""");
-                            orderManager.retrieveOrders(OrderStatus.ORDER_DELIVERED).stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
+                            orderManager.retrieveAllOrders(OrderStatus.ORDER_DELIVERED).stream().filter(order -> order.getId() == orderId).forEach(System.out::println);
                         }
                     } catch (CustomException e){
                         System.out.println(e.getMessage());
@@ -951,10 +946,10 @@ public class Main {
     private static void printOrder(List<Order> orders) throws CustomException {
         for(Order order: orders){
             System.out.println("\nId   |   Total Cost   |    Order Status    |   Order Created ");
-            System.out.println(placeOrderManager.retrieveOrder(order.getId()));
+            System.out.println(orderManager.retrieveOrder(order.getId()));
             System.out.println("\nDelivery Location   |   Delivery Date And Time");
-            System.out.println(placeOrderManager.retrieveDeliveryDetails(order.getId()));
-            HashMap<String, Integer> foodItemsQuantityMap = placeOrderManager.retrieveOrderedFoodItems(order.getId());
+            System.out.println(orderManager.retrieveDeliveryDetails(order.getId()));
+            HashMap<String, Integer> foodItemsQuantityMap = orderManager.retrieveOrderedFoodItems(order.getId());
             System.out.println("\nFood Item  |  Quantity    |   Total Cost");
             for(String foodItemName: foodItemsQuantityMap.keySet()){
                 FoodItem foodItem = foodItemManager.retrieveFoodItem(foodItemName);
@@ -964,57 +959,5 @@ public class Main {
             }
         }
         System.out.println("_____________________________________________________");
-    }
-
-    private static List<AvailableDay> convertAndValidateAvailableDays(String availableDay) throws CustomException {
-        List<String> availableDays = Arrays.asList(availableDay.toUpperCase().split(","));
-        for (String day : availableDays) {
-            if (!isValidDay(day.trim())) {
-                throw new CustomException("Invalid input: " + day.trim());
-            }
-        }
-        return availableDays.stream()
-                .map(String::trim)
-                .map(AvailableDay::valueOf)
-                .toList();
-    }
-    private static boolean isValidDay(String day) {
-        try {
-            AvailableDay.valueOf(day);
-            return true;
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-    private static String getCustomStringRepresentation(List<AvailableDay> list) {
-        StringBuilder result = new StringBuilder(String.valueOf(list.get(0)));
-        for (int i = 1; i < list.size(); i++) {
-            result.append(",").append(list.get(i));
-        }
-        return result.toString();
-    }
-
-    private static void isDateTimeFormatValid(String inputDateTime) throws CustomException {
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh-mm-ss a");
-            LocalDateTime parse = LocalDateTime.parse(inputDateTime, formatter);
-        } catch (DateTimeParseException e) {
-            throw new CustomException("Input date-time does not match the pattern.");
-        }
-    }
-
-    private static String capitalizeFirstLetter(String input) {
-        StringBuilder result = new StringBuilder();
-        String[] words = input.split("\\s");
-        for (String word : words) {
-            if (!word.isEmpty()) {
-                result.append(Character.toUpperCase(word.charAt(0)))
-                        .append(word.substring(1)).append(" ");
-            }
-        }
-        if (!result.isEmpty()) {
-            result.setLength(result.length() - 1);
-        }
-        return result.toString();
     }
 }

@@ -1,9 +1,8 @@
 package net.breezeware.entity;
 
+import net.breezeware.utility.CosUtil;
+
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 public class Delivery {
     private int order_id;
@@ -42,14 +41,9 @@ public class Delivery {
         this.deliveryDateTime = deliveryDateTime;
     }
 
-    private String formatDeliveryDateTimeInstant(){
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(deliveryDateTime, ZoneId.systemDefault());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
-        return  localDateTime.format(formatter);
-    }
-
     @Override
     public String toString() {
-        return  "%s   %s".formatted(deliveryLocation, formatDeliveryDateTimeInstant());
+        return  "%s   %s".formatted(deliveryLocation,
+                CosUtil.formatInstantToString(deliveryDateTime,"dd-MM-yyyy hh:mm:ss a"));
     }
 }

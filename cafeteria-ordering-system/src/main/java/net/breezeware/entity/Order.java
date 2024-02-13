@@ -1,9 +1,8 @@
 package net.breezeware.entity;
 
+import net.breezeware.utility.CosUtil;
+
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 public class Order {
     private int id;
@@ -66,15 +65,10 @@ public class Order {
         this.created = created;
     }
 
-    private String formatCreatedInstant(){
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(created, ZoneId.systemDefault());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss a");
-        return  localDateTime.format(formatter);
-    }
-
     @Override
     public String toString(){
         return "%d  |   %.2f    |   %s  |   %s"
-                .formatted(id , totalCost, orderStatus, formatCreatedInstant());
+                .formatted(id , totalCost, orderStatus,
+                        CosUtil.formatInstantToString(created,"dd-MM-yyyy hh:mm:ss a"));
     }
 }

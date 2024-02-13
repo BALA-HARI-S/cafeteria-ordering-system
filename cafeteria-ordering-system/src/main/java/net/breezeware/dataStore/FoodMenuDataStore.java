@@ -1,6 +1,6 @@
 package net.breezeware.dataStore;
 
-import net.breezeware.entity.AvailableDay;
+import net.breezeware.entity.MenuAvailability;
 import net.breezeware.entity.FoodItem;
 import net.breezeware.entity.FoodMenu;
 import net.breezeware.exception.CustomException;
@@ -251,11 +251,11 @@ public class FoodMenuDataStore {
     }
 
 
-    private List<AvailableDay> convertStringTOList(String availableDay){
+    private List<MenuAvailability> convertStringTOList(String availableDay){
         List<String> availableDays = Arrays.asList(availableDay.split(","));
         return availableDays.stream()
                 .map(String::trim)
-                .map(AvailableDay::valueOf)
+                .map(MenuAvailability::valueOf)
                 .toList();
     }
 
