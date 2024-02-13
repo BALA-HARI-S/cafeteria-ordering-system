@@ -21,7 +21,7 @@ public class OrderDataStore {
     private static final String TABLE_ORDER_FOOD_ITEMS_MAP = "order_food_items_map";
     private static final String TABLE_DELIVERY = "delivery";
 
-    private static final String COLUMN_ORDER_ORDER_ID = "_id";
+    private static final String COLUMN_ORDER_ORDER_ID = "id";
     private static final String COLUMN_ORDER_CUSTOMER_ID = "customer_id";
     private static final String COLUMN_ORDER_TOTAL_COST = "total_cost";
     private static final String COLUMN_ORDER_STATUS = "order_status";

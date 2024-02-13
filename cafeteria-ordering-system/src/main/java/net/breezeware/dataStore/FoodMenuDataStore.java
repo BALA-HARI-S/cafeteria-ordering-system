@@ -21,7 +21,7 @@ public class FoodMenuDataStore {
     private static final String DB_USER = "cos_usr";
     private static final String DB_PASSWORD= "P@ssw0rd";
     private static final String TABLE_FOOD_MENU = "food_menu";
-    private static final String COLUMN_MENU_ID = "_id";
+    private static final String COLUMN_MENU_ID = "id";
     private static final String COLUMN_MENU_NAME = "name";
     private static final String COLUMN_MENU_AVAILABLE_DAY = "available_day";
     private static final String COLUMN_MENU_CREATED = "created";
@@ -32,7 +32,7 @@ public class FoodMenuDataStore {
     private static final String COLUMN_FOOD_ITEM_ID = "food_item_id";
 
     private static final String TABLE_FOOD_ITEMS = "food_items";
-    private static final String COLUMN_FOOD_ID = "_id";
+    private static final String COLUMN_FOOD_ID = "id";
     private static final String COLUMN_FOOD_ITEM_NAME = "name";
 
 

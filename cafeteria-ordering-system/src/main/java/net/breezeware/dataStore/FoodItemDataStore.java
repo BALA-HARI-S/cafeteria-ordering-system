@@ -16,7 +16,7 @@ public class FoodItemDataStore {
     private static final String DB_USER = "cos_usr";
     private static final String DB_PASSWORD= "P@ssw0rd";
     private static final String TABLE_FOOD_ITEMS = "food_items";
-    private static final String COLUMN_FOOD_ID = "_id";
+    private static final String COLUMN_FOOD_ID = "id";
     private static final String COLUMN_FOOD_NAME = "name";
     private static final String COLUMN_FOOD_QUANTITY = "quantity";
     private static final String COLUMN_FOOD_PRICE = "price";
