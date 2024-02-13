@@ -44,8 +44,8 @@ public class FoodItemManagerImplementation implements FoodItemManager{
     }
 
     @Override
-    public List<FoodItem> retrieveAllFoodItems(boolean isOrderBy, int sortOrder, String columnName) throws CustomException {
-        return foodItemStore.queryAllFoodItems(isOrderBy, sortOrder, columnName);
+    public List<FoodItem> retrieveAllFoodItems(boolean orderStatus, int sortOrder, String columnName) throws CustomException {
+        return foodItemStore.queryAllFoodItems(orderStatus, sortOrder, columnName);
     }
 
     @Override

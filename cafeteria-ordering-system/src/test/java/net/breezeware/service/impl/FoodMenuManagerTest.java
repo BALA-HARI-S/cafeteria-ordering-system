@@ -267,7 +267,7 @@ class FoodMenuManagerTest {
         when(foodMenuDataStore.updateFoodMenuAvailableDay(anyString(),anyString()))
                 .thenReturn(new FoodMenu(name,availableDays,fixedInstant,fixedInstant));
 
-        FoodMenu updatedFoodMenu = foodMenuManager.updateFoodMenuAvailableDay(availableDays,name);
+        FoodMenu updatedFoodMenu = foodMenuManager.updateFoodMenuAvailability(availableDays,name);
         Assertions.assertThat(updatedFoodMenu.getAvailableDay().get(0)).isEqualTo(MenuAvailability.MONDAY);
     }
 

@@ -448,7 +448,7 @@ public class Main {
                                     System.out.print("Enter a New Food Menu Available Days(Day1,Day2,..): ");
                                     String newFoodMenuAvailableDays = scanner.nextLine();
                                     List<MenuAvailability> availableDays = MenuAvailability.validateAndConvertAvailableDaysToList(newFoodMenuAvailableDays);
-                                    FoodMenu updatedMenu = foodMenuManager.updateFoodMenuAvailableDay(availableDays, foodMenuName);
+                                    FoodMenu updatedMenu = foodMenuManager.updateFoodMenuAvailability(availableDays, foodMenuName);
                                     System.out.println("""
                                                 Food Menu Available Day Updated!
                                                 _id   |   name   |   available_day""");

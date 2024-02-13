@@ -22,7 +22,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     }
 
     @Override
-    public FoodMenu createFoodMenu(String name, List<MenuAvailability> availableDay) throws CustomException {
+    public FoodMenu createFoodMenu(String name, List<MenuAvailability> menuAvailability) throws CustomException {
         String menuName = CosUtil.capitalizeFirstLetter(name);
         if(CosUtil.validateFoodMenuName(menuName) || menuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
@@ -30,7 +30,7 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
         Instant instantNow = Instant.now();
         LocalDateTime createdDateTime = LocalDateTime.ofInstant(instantNow, ZoneId.systemDefault());
         LocalDateTime modifiedDateTime = LocalDateTime.ofInstant(instantNow, ZoneId.systemDefault());
-        return foodMenuStore.insertFoodMenu(menuName, MenuAvailability.daysToString(availableDay),createdDateTime, modifiedDateTime);
+        return foodMenuStore.insertFoodMenu(menuName, MenuAvailability.daysToString(menuAvailability),createdDateTime, modifiedDateTime);
     }
 
     @Override
@@ -72,8 +72,8 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     }
 
     @Override
-    public List<FoodMenu> retrieveAllFoodMenus(boolean isOrderBy, int sortOrder, String columnName) throws CustomException {
-        return foodMenuStore.queryAllFoodMenu(isOrderBy, sortOrder, columnName);
+    public List<FoodMenu> retrieveAllFoodMenus(boolean orderStatus, int sortOrder, String columnName) throws CustomException {
+        return foodMenuStore.queryAllFoodMenu(orderStatus, sortOrder, columnName);
     }
 
     @Override
@@ -101,12 +101,12 @@ public class FoodMenuManagerImplementation implements FoodMenuManager {
     }
 
     @Override
-    public FoodMenu updateFoodMenuAvailableDay(List<MenuAvailability> availableDays, String foodMenuName) throws CustomException {
+    public FoodMenu updateFoodMenuAvailability(List<MenuAvailability> menuAvailability, String foodMenuName) throws CustomException {
         if(CosUtil.validateFoodMenuName(foodMenuName) || foodMenuName.isEmpty()){
             throw new CustomException("Food Item Menu Cannot be Empty and should only contains a-z,A-Z,0-9");
         }
         return foodMenuStore.updateFoodMenuAvailableDay(
-                MenuAvailability.daysToString(availableDays), CosUtil.capitalizeFirstLetter(foodMenuName));
+                MenuAvailability.daysToString(menuAvailability), CosUtil.capitalizeFirstLetter(foodMenuName));
     }
 
     @Override
